@@ -12,6 +12,7 @@ import utils
 import dataset
 import models
 import trainer
+import loss
 from torch_geometric.datasets import Planetoid
 
 import os
@@ -60,19 +61,19 @@ def main():
                                 weight_decay = cfg.TRAIN.OPTIMIZER.weight_decay)
     else:
         raise NotImplementedError("Got unsupported optimizer: {}".format(cfg.TRAIN.OPTIMIZER.type))
-    criterion = torch.nn.BCEWithLogitsLoss()
+    criterion = loss.dispatcher(cfg)
     trainer_func = trainer.dispatcher(cfg)
     my_trainer = trainer_func(cfg, model, criterion, cora_dataset, optimizer, device)
 
     best_val_auc = final_test_auc = 0
     for epoch in range(1, cfg.TRAIN.max_epochs):
-        loss = my_trainer.train_one(device)
+        loss_value = my_trainer.train_one(device)
         val_auc = my_trainer.val_one(device)
         test_auc = my_trainer.test_one(device)
         if val_auc > best_val_auc:
             best_val_auc = val_auc
             final_test_auc = test_auc
-        print(f'Epoch: {epoch:03d}, Loss: {loss:.4f}, Val: {val_auc:.4f}, '
+        print(f'Epoch: {epoch:03d}, Loss: {loss_value:.4f}, Val: {val_auc:.4f}, '
             f'Test: {test_auc:.4f}')
 
     print(f'Final Test: {final_test_auc:.4f}')
