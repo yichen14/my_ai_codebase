@@ -1,0 +1,20 @@
+name: "link_pred_gae"
+task: "graph_link_prediction"
+geometric: True
+
+MODEL:
+  model: "GAE"
+
+DATASET:
+  dataset: "cora"
+  
+LOSS:
+  loss: 'BCEWithLogitsLoss'
+
+TRAIN:
+  max_epochs: 100
+  batch_size: 32
+  initial_lr: 0.01
+  OPTIMIZER:
+    type: "ADAM"
+
