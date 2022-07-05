@@ -4,6 +4,7 @@ geometric: True
 
 MODEL:
   model: "GAE"
+  encoder: "GCN"
 
 DATASET:
   dataset: "cora"

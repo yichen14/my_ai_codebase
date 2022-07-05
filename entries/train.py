@@ -16,7 +16,6 @@ import loss
 from torch_geometric.datasets import Planetoid
 
 import os
-import utils
 from tqdm import tqdm, trange
 
 # Reference for link prediction: https://github.com/pyg-team/pytorch_geometric/blob/master/examples/link_pred.py
@@ -40,15 +39,20 @@ def main():
 
     transform = T.Compose([
         T.ToUndirected(merge = True),
-        T.ToDevice(device),
+        T.ToDevice('cpu'),
         T.RandomLinkSplit(num_val=0.05, num_test=0.1, is_undirected=True,
-                        add_negative_train_samples=False),
+                      split_labels=True, add_negative_train_samples=False),
     ])  
 
     cora_dataset = Planetoid(root = CORA_PATH, name="Cora", transform=transform)
-
-    model_cls = models.dispatcher(cfg)
-    model = model_cls(cora_dataset.num_features, 128, 64).to(device)
+    
+    num_features = cora_dataset.num_features
+    if cfg.MODEL.encoder != "none":
+        model_cls, encoder_cls = models.dispatcher(cfg)
+        model = model_cls(encoder_cls(num_features))
+    else:
+        model_cls = models.dispatcher(cfg)
+        model = model_cls(num_features).to(device)
 
     if cfg.TRAIN.OPTIMIZER.type == "adadelta":
         optimizer = optim.Adadelta(model.parameters(), lr = cfg.TRAIN.initial_lr,

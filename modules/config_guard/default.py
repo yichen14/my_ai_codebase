@@ -56,6 +56,7 @@ _C.CLASSIFIER.FC.bias = False
 #######################
 _C.MODEL = CN()
 _C.MODEL.model = "none"
+_C.MODEL.encoder = "none"
 
 #######################
 # Loss
