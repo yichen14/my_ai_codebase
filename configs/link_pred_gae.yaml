@@ -1,10 +1,9 @@
 name: "link_pred_gae"
-task: "graph_link_prediction"
-geometric: True
+task: "static_link_prediction"
 
 MODEL:
-  model: "GAE"
-  encoder: "GCN"
+  model: "VGAE"
+  encoder: "linear"
 
 DATASET:
   dataset: "cora"
@@ -18,4 +17,7 @@ TRAIN:
   initial_lr: 0.01
   OPTIMIZER:
     type: "ADAM"
-
+    
+TASK_SPECIFIC:
+  GEOMETRIC:
+    num_features: 1433

@@ -21,7 +21,6 @@ _C.meta_training_num_classes = -1
 _C.meta_testing_num_classes = -1
 _C.input_dim = (3, 32, 32)
 _C.save_model = False
-_C.geometric = False
 
 #######################
 # DL System Setting
@@ -175,6 +174,12 @@ _C.TASK_SPECIFIC.GIFS.baseset_type = 'random' # ('random', 'far', 'close', 'far_
 _C.TASK_SPECIFIC.GIFS.probabilistic_synthesis_strat = 'vRFS' # ('vRFS', 'always', 'always_no', 'CAS', 'half')
 _C.TASK_SPECIFIC.GIFS.num_runs = -1
 
+#######################
+# GEOMETRIC Settings
+#######################
+_C.TASK_SPECIFIC.GEOMETRIC = CN()
+_C.TASK_SPECIFIC.GEOMETRIC.num_features = -1
+_C.TASK_SPECIFIC.GEOMETRIC.node_count = -1
 
 # ---------------------------
 # | End Default Config

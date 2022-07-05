@@ -1,0 +1,23 @@
+name: "link_pred_temporal"
+task: "temporal_link_prediction"
+
+MODEL:
+  model: "RGCN"
+
+DATASET:
+  dataset: "Chickenpox"
+  
+LOSS:
+  loss: 'MSEloss'
+
+TRAIN:
+  max_epochs: 50
+  batch_size: 32
+  initial_lr: 0.01
+  OPTIMIZER:
+    type: "ADAM"
+
+TASK_SPECIFIC:
+  GEOMETRIC:
+    num_features: 4
+    node_count: 20

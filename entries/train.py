@@ -13,13 +13,8 @@ import dataset
 import models
 import trainer
 import loss
-
-
 import os
 from tqdm import tqdm, trange
-
-# Reference for link prediction: https://github.com/pyg-team/pytorch_geometric/blob/master/examples/link_pred.py
-
 
 
 def parse_args():
@@ -34,21 +29,22 @@ def parse_args():
 def main():
     args = parse_args()
     update_config_from_yaml(cfg, args)
-
+    
+    # find the device
     device = utils.guess_device()
 
-
-
+    # set up dataset
     data = dataset.dispatcher(cfg)
-    
-    num_features = data.num_features
+
+    # set up model
     if cfg.MODEL.encoder != "none":
         model_cls, encoder_cls = models.dispatcher(cfg)
-        model = model_cls(encoder_cls(num_features)).to(device)
+        model = model_cls(encoder_cls(cfg)).to(device)
     else:
         model_cls = models.dispatcher(cfg)
-        model = model_cls(num_features).to(device)
+        model = model_cls(cfg).to(device)
 
+    # set up optimizer
     if cfg.TRAIN.OPTIMIZER.type == "adadelta":
         optimizer = optim.Adadelta(model.parameters(), lr = cfg.TRAIN.initial_lr,
                                     weight_decay = cfg.TRAIN.OPTIMIZER.weight_decay)
@@ -60,15 +56,20 @@ def main():
                                 weight_decay = cfg.TRAIN.OPTIMIZER.weight_decay)
     else:
         raise NotImplementedError("Got unsupported optimizer: {}".format(cfg.TRAIN.OPTIMIZER.type))
+    
+    # set up loss function (note that we do not need to give criterion to a graph autoencoder)
     criterion = loss.dispatcher(cfg)
+
+    # set up trainer
     trainer_func = trainer.dispatcher(cfg)
     my_trainer = trainer_func(cfg, model, criterion, data, optimizer, device)
 
+    # start training
     best_val_auc = final_test_auc = 0
     for epoch in range(1, cfg.TRAIN.max_epochs):
-        loss_value = my_trainer.train_one(device)
-        val_auc = my_trainer.val_one(device)
-        test_auc = my_trainer.test_one(device)
+        loss_value = my_trainer.train_one(device) # train
+        val_auc = my_trainer.val_one(device) # eval
+        test_auc = my_trainer.test_one(device) # test
         if val_auc > best_val_auc:
             best_val_auc = val_auc
             final_test_auc = test_auc

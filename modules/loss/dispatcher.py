@@ -15,5 +15,7 @@ def dispatcher(cfg):
         return semantic_segmentation_nllloss(cfg)
     elif loss_name == "BCEWithLogitsLoss":
         return nn.BCEWithLogitsLoss()
+    elif loss_name == "MSEloss":
+        return nn.MSELoss()
     else:
         raise NotImplementedError

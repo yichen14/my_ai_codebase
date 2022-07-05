@@ -7,8 +7,9 @@ import torch_geometric.transforms as T
 from torch_geometric.nn import GCNConv
 
 class GCNEncoder(torch.nn.Module):
-    def __init__(self, in_channels):
+    def __init__(self, cfg):
         super().__init__()
+        in_channels = cfg.TASK_SPECIFIC.GEOMETRIC.num_features
         out_channels = 64
         self.conv1 = GCNConv(in_channels, 2 * out_channels)
         self.conv2 = GCNConv(2 * out_channels, out_channels)
@@ -19,8 +20,9 @@ class GCNEncoder(torch.nn.Module):
 
 
 class VariationalGCNEncoder(torch.nn.Module):
-    def __init__(self, in_channels):
+    def __init__(self, cfg):
         super().__init__()
+        in_channels = cfg.TASK_SPECIFIC.GEOMETRIC.num_features
         out_channels = 64
         self.conv1 = GCNConv(in_channels, 2 * out_channels)
         self.conv_mu = GCNConv(2 * out_channels, out_channels)
@@ -32,8 +34,9 @@ class VariationalGCNEncoder(torch.nn.Module):
 
 
 class LinearEncoder(torch.nn.Module):
-    def __init__(self, in_channels):
+    def __init__(self, cfg):
         super().__init__()
+        in_channels = cfg.TASK_SPECIFIC.GEOMETRIC.num_features
         out_channels = 64
         self.conv = GCNConv(in_channels, out_channels)
 
@@ -42,8 +45,9 @@ class LinearEncoder(torch.nn.Module):
 
 
 class VariationalLinearEncoder(torch.nn.Module):
-    def __init__(self, in_channels):
+    def __init__(self, cfg):
         super().__init__()
+        in_channels = cfg.TASK_SPECIFIC.GEOMETRIC.num_features
         out_channels = 64
         self.conv_mu = GCNConv(in_channels, out_channels)
         self.conv_logstd = GCNConv(in_channels, out_channels)
