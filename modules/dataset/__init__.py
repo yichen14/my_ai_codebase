@@ -1,1 +1,1 @@
-from .static_graph import static_graph
+from .dispatcher import dispatcher

@@ -7,20 +7,20 @@ import torch.optim as optim
 
 from sklearn.metrics import roc_auc_score
 from config_guard import cfg, update_config_from_yaml
-import torch_geometric.transforms as T
+
 import utils
 import dataset
 import models
 import trainer
 import loss
-from torch_geometric.datasets import Planetoid
+
 
 import os
 from tqdm import tqdm, trange
 
 # Reference for link prediction: https://github.com/pyg-team/pytorch_geometric/blob/master/examples/link_pred.py
 
-CORA_PATH = os.path.join(utils.get_dataset_root(), 'Cora')
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description = "Eason's Deep Learning Codebase")
@@ -37,19 +37,14 @@ def main():
 
     device = utils.guess_device()
 
-    transform = T.Compose([
-        T.ToUndirected(merge = True),
-        T.ToDevice('cpu'),
-        T.RandomLinkSplit(num_val=0.05, num_test=0.1, is_undirected=True,
-                      split_labels=True, add_negative_train_samples=False),
-    ])  
 
-    cora_dataset = Planetoid(root = CORA_PATH, name="Cora", transform=transform)
+
+    data = dataset.dispatcher(cfg)
     
-    num_features = cora_dataset.num_features
+    num_features = data.num_features
     if cfg.MODEL.encoder != "none":
         model_cls, encoder_cls = models.dispatcher(cfg)
-        model = model_cls(encoder_cls(num_features))
+        model = model_cls(encoder_cls(num_features)).to(device)
     else:
         model_cls = models.dispatcher(cfg)
         model = model_cls(num_features).to(device)
@@ -67,7 +62,7 @@ def main():
         raise NotImplementedError("Got unsupported optimizer: {}".format(cfg.TRAIN.OPTIMIZER.type))
     criterion = loss.dispatcher(cfg)
     trainer_func = trainer.dispatcher(cfg)
-    my_trainer = trainer_func(cfg, model, criterion, cora_dataset, optimizer, device)
+    my_trainer = trainer_func(cfg, model, criterion, data, optimizer, device)
 
     best_val_auc = final_test_auc = 0
     for epoch in range(1, cfg.TRAIN.max_epochs):
