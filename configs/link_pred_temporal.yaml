@@ -11,7 +11,7 @@ LOSS:
   loss: 'MSEloss'
 
 TRAIN:
-  max_epochs: 50
+  max_epochs: 100
   batch_size: 32
   initial_lr: 0.01
   OPTIMIZER:
