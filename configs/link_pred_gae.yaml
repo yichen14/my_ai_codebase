@@ -17,7 +17,10 @@ TRAIN:
   initial_lr: 0.01
   OPTIMIZER:
     type: "ADAM"
+
     
 TASK_SPECIFIC:
   GEOMETRIC:
     num_features: 1433
+
+  
