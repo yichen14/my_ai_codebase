@@ -4,13 +4,14 @@ import torch
 from abc import abstractmethod
 
 class base_trainer(object):
-    def __init__(self, cfg, model, criterion, dataset_module, optimizer, device):
+    def __init__(self, cfg, model, criterion, dataset_module, optimizer, attack_func, device):
         self.cfg = cfg
         self.model = model
         self.criterion = criterion
         self.device = device
         self.dataset_module = dataset_module
         self.optimizer = optimizer
+        self.attack_func = attack_func
 
     @abstractmethod
     def train_one(self, device, optimizer, epoch):

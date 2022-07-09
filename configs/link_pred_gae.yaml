@@ -18,6 +18,9 @@ TRAIN:
   OPTIMIZER:
     type: "ADAM"
 
+ATTACK:
+  method: "random"
+  ptb_rate: 0.5
     
 TASK_SPECIFIC:
   GEOMETRIC:

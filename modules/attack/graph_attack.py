@@ -13,7 +13,6 @@ def generate_random_attack(data, randomness, device):
         Return:
             modified_data: (torch_geometric.datasets.Data)
     """
-    print(data)
     data_dpr = Pyg2Dpr(data) # convert pyg data to dpr data
 
     adj, _ = data_dpr.adj, data_dpr.features

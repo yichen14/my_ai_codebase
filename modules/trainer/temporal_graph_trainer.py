@@ -6,8 +6,14 @@ import utils
 from torch_geometric_temporal.signal import temporal_signal_split
 
 class temp_graph_trainer(base_trainer):
-    def __init__(self, cfg, model, criterion, dataset_module, optimizer, device) -> None:
-        super(temp_graph_trainer, self).__init__(cfg, model, criterion, dataset_module, optimizer, device)
+    def __init__(self, cfg, model, criterion, dataset_module, optimizer, attack_func, device) -> None:
+        super(temp_graph_trainer, self).__init__(cfg, model, criterion, dataset_module, optimizer, attack_func, device)
+
+        # if(attack_func != None)
+        #     attack_data = self.attack_func(dataset_module, cfg.ATTACK.ptb_rate, device)
+        #     data = transform(attack_data.data)
+        # else:
+        #     data = transform(dataset_module[0])
 
         self.train_data, self.test_data = temporal_signal_split(dataset_module, train_ratio=0.2)
 
