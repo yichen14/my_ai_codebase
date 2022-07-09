@@ -19,5 +19,5 @@ def dispatcher(cfg):
         from models.GCN import GCN as GCN_cls
         return GCN_cls
     if network_name == "RGCN":
-        from .RecurrentGCN import RecurrentGCN as RGCN_cls
+        from .RecurrentGCN import RecurrentGCN_EGCNH as RGCN_cls
         return RGCN_cls

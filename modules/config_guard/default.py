@@ -179,7 +179,7 @@ _C.TASK_SPECIFIC.GIFS.num_runs = -1
 #######################
 _C.TASK_SPECIFIC.GEOMETRIC = CN()
 _C.TASK_SPECIFIC.GEOMETRIC.num_features = -1
-_C.TASK_SPECIFIC.GEOMETRIC.node_count = -1
+_C.TASK_SPECIFIC.GEOMETRIC.num_nodes = -1
 
 # ---------------------------
 # | End Default Config

@@ -20,4 +20,4 @@ TRAIN:
 TASK_SPECIFIC:
   GEOMETRIC:
     num_features: 4
-    node_count: 20
+    num_nodes: 20
