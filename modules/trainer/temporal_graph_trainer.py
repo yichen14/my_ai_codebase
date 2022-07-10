@@ -21,9 +21,17 @@ class temp_graph_trainer(base_trainer):
         self.model.train()
         self.optimizer.zero_grad()
         loss = 0
+        h, c = None, None
+
         for time, snapshot in enumerate(self.train_data):
-            y_hat = self.model(snapshot.x.to(device), snapshot.edge_index.to(device), snapshot.edge_attr.to(device))
+
+            if self.cfg.MODEL.model in ["GCLSTM"]:
+                y_hat, h, c = self.model(snapshot.x.to(device), snapshot.edge_index.to(device), snapshot.edge_attr.to(device), h, c)
+            else:
+                y_hat = self.model(snapshot.x.to(device), snapshot.edge_index.to(device), snapshot.edge_attr.to(device))
+
             loss = loss + self.criterion(y_hat, snapshot.y.to(device))
+
         loss = loss / (time+1)
         loss.backward()
         self.optimizer.step()
@@ -38,8 +46,12 @@ class temp_graph_trainer(base_trainer):
     def test_one(self, device):
         self.model.eval()
         loss = 0
+        h, c = None, None
         for time, snapshot in enumerate(self.test_data):
-            y_hat = self.model(snapshot.x.to(device), snapshot.edge_index.to(device), snapshot.edge_attr.to(device))
+            if self.cfg.MODEL.model in ["GCLSTM"]:
+                y_hat, h, c = self.model(snapshot.x.to(device), snapshot.edge_index.to(device), snapshot.edge_attr.to(device), h, c)
+            else:
+                y_hat = self.model(snapshot.x.to(device), snapshot.edge_index.to(device), snapshot.edge_attr.to(device))
             loss = loss + self.criterion(y_hat, snapshot.y.to(device))
         loss = loss / (time+1)
         loss = loss.item()

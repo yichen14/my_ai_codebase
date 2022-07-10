@@ -186,7 +186,9 @@ _C.TASK_SPECIFIC.GIFS.num_runs = -1
 #######################
 _C.TASK_SPECIFIC.GEOMETRIC = CN()
 _C.TASK_SPECIFIC.GEOMETRIC.num_features = -1
-_C.TASK_SPECIFIC.GEOMETRIC.node_count = -1
+_C.TASK_SPECIFIC.GEOMETRIC.num_nodes = -1
+_C.TASK_SPECIFIC.GEOMETRIC.inner_prod = False
+_C.TASK_SPECIFIC.GEOMETRIC.filter_size = 2
 
 # ---------------------------
 # | End Default Config
