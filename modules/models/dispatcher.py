@@ -18,6 +18,17 @@ def dispatcher(cfg):
     if network_name == "GCN":
         from models.GCN import GCN as GCN_cls
         return GCN_cls
-    if network_name == "RGCN":
+
+    # Temporal Network 
+    if network_name == "EGCNH":
         from .RecurrentGCN import RecurrentGCN_EGCNH as RGCN_cls
+        return RGCN_cls
+    if network_name == "EGCNO":
+        from .RecurrentGCN import RecurrentGCN_EGCNO as RGCN_cls
+        return RGCN_cls
+    if network_name == "DCRNN":
+        from .RecurrentGCN import RecurrentGCN_DCRNN as RGCN_cls
+        return RGCN_cls
+    if network_name == "GCLSTM":
+        from .RecurrentGCN import RecurrentGCN_GCLSTM as RGCN_cls
         return RGCN_cls

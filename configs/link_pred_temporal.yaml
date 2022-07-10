@@ -2,7 +2,7 @@ name: "link_pred_temporal"
 task: "temporal_link_prediction"
 
 MODEL:
-  model: "RGCN"
+  model: "GCLSTM"
 
 DATASET:
   dataset: "Chickenpox"
@@ -21,3 +21,5 @@ TASK_SPECIFIC:
   GEOMETRIC:
     num_features: 4
     num_nodes: 20
+    inner_prod: False
+    filter_size: 2

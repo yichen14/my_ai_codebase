@@ -17,14 +17,17 @@ GNN Layer: GCN
 Temporal Layer: LSTM
 GNN Layer: GCN 
 
+3. DCRNN: Diffusion Convolutional Gated Recurrent Unit. 
+Temporal Layer: GRU
+GNN Layer: DiffConv
+
+4. GCLSTM: Integrated Graph Convolutional Long Short Term Memory Cell
+Temporal Layer: LSTM
+GNN Layer: Chebyshev
+
 """
 
 class RecurrentGCN_EGCNH(torch.nn.Module):
-    """
-    Arg:
-        num_nodes (int): Number of vertices. 
-        in_channels (int): Number of filters.
-    """
     def __init__(self, cfg):
         super(RecurrentGCN_EGCNH, self).__init__()
         in_channels = cfg.TASK_SPECIFIC.GEOMETRIC.num_features
@@ -35,16 +38,17 @@ class RecurrentGCN_EGCNH(torch.nn.Module):
         
         if not inner_prod:
             self.classifier = torch.nn.Sequential(
-                torch.nn.Linear(in_channels*2, 1) # Undirected? 
-                torch.nn.Sigmoid()
+                torch.nn.Linear(in_channels, 1), 
+                # torch.nn.Sigmoid()
             )
         else:
             self.classifier = None
+        
 
     def forward(self, x, edge_index, edge_weight):
         h = self.recurrent(x, edge_index, edge_weight)
         h = F.relu(h)
-        h = self.classifier(h)
+        h = self.classifer(h)
         return h
 
 class RecurrentGCN_EGCNO(torch.nn.Module):
@@ -54,11 +58,11 @@ class RecurrentGCN_EGCNO(torch.nn.Module):
         inner_prod = cfg.TASK_SPECIFIC.GEOMETRIC.inner_prod
 
         self.recurrent = rcrgcn.EvolveGCNO(in_channels)
-
+        
         if not inner_prod:
             self.classifier = torch.nn.Sequential(
-                torch.nn.Linear(in_channels*2, in_channels*2) # Undirected? 
-                torch.nn.Sigmoid()
+                torch.nn.Linear(in_channels, 1), 
+                # torch.nn.Sigmoid()
             )
         else:
             self.classifier = None
@@ -68,5 +72,53 @@ class RecurrentGCN_EGCNO(torch.nn.Module):
         h = F.relu(h)
         h = self.classifier(h)
         return h
+
+class RecurrentGCN_DCRNN(torch.nn.Module):
+    def __init__(self, cfg):
+        super(RecurrentGCN_DCRNN, self).__init__()
+        in_channels = cfg.TASK_SPECIFIC.GEOMETRIC.num_features
+        out_channels = cfg.TASK_SPECIFIC.GEOMETRIC.num_features
+        inner_prod = cfg.TASK_SPECIFIC.GEOMETRIC.inner_prod
+        K = cfg.TASK_SPECIFIC.GEOMETRIC.filter_size 
+
+        self.recurrent = rcrgcn.DCRNN(in_channels, out_channels, K)
+
+        if not inner_prod:
+            self.classifier = torch.nn.Sequential(
+                torch.nn.Linear(in_channels, 1), 
+                # torch.nn.Sigmoid()
+            )
+        else:
+            self.classifier = None
+    
+    def forward(self, x, edge_index, edge_weight):
+        h = self.recurrent(x, edge_index, edge_weight)
+        h = F.relu(h)
+        h = self.classifier(h)
+        return h
+
+class RecurrentGCN_GCLSTM(torch.nn.Module):
+    def __init__(self, cfg):
+        super(RecurrentGCN_GCLSTM, self).__init__()
+        in_channels = cfg.TASK_SPECIFIC.GEOMETRIC.num_features
+        out_channels = cfg.TASK_SPECIFIC.GEOMETRIC.num_features
+        inner_prod = cfg.TASK_SPECIFIC.GEOMETRIC.inner_prod
+        K = cfg.TASK_SPECIFIC.GEOMETRIC.filter_size
+
+        self.recurrent = rcrgcn.GCLSTM(in_channels, out_channels, K)
+        if not inner_prod:
+            self.classifier = torch.nn.Sequential(
+                torch.nn.Linear(in_channels, 1), 
+                # torch.nn.Sigmoid()
+            )
+        else:
+            self.classifier = None
+    
+    def forward(self, x, edge_index, edge_weight, h, c):
+        h_0, c_0 = self.recurrent(x, edge_index, edge_weight, h, c)
+        h = F.relu(h_0)
+        h = self.classifier(h)
+        return h, h_0, c_0
+
 
 
