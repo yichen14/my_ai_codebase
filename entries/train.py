@@ -14,6 +14,7 @@ from dataset import temporal_graph
 import models
 import trainer
 import loss
+import attack
 import os
 from tqdm import tqdm, trange
 
@@ -50,9 +51,12 @@ def main():
     # # set up loss function (note that we do not need to give criterion to a graph autoencoder)
     # criterion = loss.dispatcher(cfg)
 
-    # # set up trainer
-    # trainer_func = trainer.dispatcher(cfg)
-    # my_trainer = trainer_func(cfg, model, criterion, data, optimizer, device)
+    # set up attacker
+    attack_func = attack.dispatcher(cfg)
+
+    # set up trainer
+    trainer_func = trainer.dispatcher(cfg)
+    my_trainer = trainer_func(cfg, model, criterion, data, optimizer, attack_func, device)
 
     # # start training
     # best_val_auc = final_test_auc = 0

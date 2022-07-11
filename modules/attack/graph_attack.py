@@ -31,5 +31,5 @@ def generate_random_attack(data, randomness, device):
     data_dpr.adj = random_attack.modified_adj
 
     data_pyg = Dpr2Pyg(data_dpr)
-
+    #  print(data_pyg.data)
     return data_pyg

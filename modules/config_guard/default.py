@@ -151,6 +151,13 @@ _C.DATASET.TRANSFORM.TRAIN.TRANSFORMS_DETAILS.RANDOM_RESIZE = CN()
 _C.DATASET.TRANSFORM.TEST = _C.DATASET.TRANSFORM.TRAIN.clone()
 
 #######################
+# ATTACK Settings
+#######################
+_C.ATTACK = CN()
+_C.ATTACK.method = "none"
+_C.ATTACK.ptb_rate = 0.1
+
+#######################
 # Task-specific Settings
 #######################
 _C.TASK_SPECIFIC = CN()
@@ -179,7 +186,9 @@ _C.TASK_SPECIFIC.GIFS.num_runs = -1
 #######################
 _C.TASK_SPECIFIC.GEOMETRIC = CN()
 _C.TASK_SPECIFIC.GEOMETRIC.num_features = -1
-_C.TASK_SPECIFIC.GEOMETRIC.node_count = -1
+_C.TASK_SPECIFIC.GEOMETRIC.num_nodes = -1
+_C.TASK_SPECIFIC.GEOMETRIC.inner_prod = False
+_C.TASK_SPECIFIC.GEOMETRIC.filter_size = 2
 
 # ---------------------------
 # | End Default Config
