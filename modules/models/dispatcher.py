@@ -1,34 +1,37 @@
 def dispatcher(cfg):
-    network_name = cfg.MODEL.model
+    model_name = cfg.MODEL.model
     encoder = cfg.MODEL.encoder
-    if network_name == "GAE":
+    if model_name == "GAE":
         from .autoencoder import GAE as GAE_cls
         if encoder == "GCN":
             from .encoders import GCNEncoder as encoder_cls
         if encoder == "linear":
             from .encoders import LinearEncoder as encoder_cls
         return GAE_cls, encoder_cls
-    if network_name == "VGAE":
+    if model_name == "VGAE":
         from .autoencoder import VGAE as VGAE_cls
         if encoder == "GCN":
             from .encoders import VariationalGCNEncoder as encoder_cls
         if encoder == "linear":
             from .encoders import VariationalLinearEncoder as encoder_cls
         return VGAE_cls, encoder_cls
-    if network_name == "GCN":
+    if model_name == "GCN":
         from models.GCN import GCN as GCN_cls
         return GCN_cls
 
     # Temporal Network 
-    if network_name == "EGCNH":
+    if model_name == "EGCNH":
         from .RecurrentGCN import RecurrentGCN_EGCNH as RGCN_cls
         return RGCN_cls
-    if network_name == "EGCNO":
+    if model_name == "EGCNO":
         from .RecurrentGCN import RecurrentGCN_EGCNO as RGCN_cls
         return RGCN_cls
-    if network_name == "DCRNN":
+    if model_name == "DCRNN":
         from .RecurrentGCN import RecurrentGCN_DCRNN as RGCN_cls
         return RGCN_cls
-    if network_name == "GCLSTM":
+    if model_name == "GCLSTM":
         from .RecurrentGCN import RecurrentGCN_GCLSTM as RGCN_cls
+        return RGCN_cls
+    if model_name == "VGRNN":
+        from .VGRNN import VGRNN as RGCN_cls
         return RGCN_cls
