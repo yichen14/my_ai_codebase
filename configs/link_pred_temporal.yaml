@@ -2,10 +2,10 @@ name: "link_pred_temporal"
 task: "temporal_link_prediction"
 
 MODEL:
-  model: "GCLSTM"
+  model: "VGRNN"
 
 DATASET:
-  dataset: "Chickenpox"
+  dataset: "fb"
   
 LOSS:
   loss: 'MSEloss'
