@@ -16,7 +16,7 @@ TRAIN:
   max_epochs: 1000
   log_epoch: 10
   batch_size: 64
-  initial_lr: 0.01
+  initial_lr: 0.00005
   OPTIMIZER:
     type: "ADAM"
 

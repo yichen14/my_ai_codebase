@@ -1,21 +1,21 @@
-import torch
+import torch 
 import torch_geometric
 from .base_trainer import base_trainer
 from sklearn.metrics import roc_auc_score
 from utils.metrics import get_roc_scores
+from utils.generators import link_prediction
 import time
 from torch.autograd import Variable
 from torch import nn
 import numpy as np
-# from torch_geometric_temporal.signal import temporal_signal_split
 
-class temp_graph_trainer(base_trainer):
-    def __init__(self, cfg, model, criterion, dataset_module, optimizer, device) -> None:
-        super(temp_graph_trainer, self).__init__(cfg, model, criterion, dataset_module, optimizer, device)
+class egcn_trainer(base_trainer):
+    def __init__(self, cfg, model, criterion, dataset_module, optimizer, device):
+        super().__init__(cfg, model, criterion, dataset_module, optimizer, device)
         self.max_epochs = cfg.TRAIN.max_epochs
         self.log_epoch = cfg.TRAIN.log_epoch
         self.temporal_data = dataset_module
-
+    
     def train(self, test_len = 1):
 
         x_in = self.temporal_data.feat
@@ -38,17 +38,18 @@ class temp_graph_trainer(base_trainer):
             edge_idx_list[i] = torch.tensor(edge_idx_list[i]).to(self.device)
 
         for k in range(1, self.max_epochs+1):
+            self.model.train()
             self.optimizer.zero_grad()
-            start_time = time.time()
-            kld_loss, nll_loss, _, _, hidden_st = self.model(x_in[seq_start:seq_end]
-                                                , edge_idx_list[seq_start:seq_end]
-                                                , adj_orig_dense_list[seq_start:seq_end])
-            # loss = kld_loss + nll_loss
-            loss = nll_loss
-            loss.backward()
-            self.optimizer.step()
-    
-            # nn.utils.clip_grad_norm(self.model.parameters(), 10)
+
+            # Get embedding 
+            zs = self.model(adj_orig_dense_list, x_in)
+
+            p, n, z = link_prediction()
+
+            
+            
+
+            
 
             print('epoch: ', k)
             print('kld_loss =', kld_loss.mean().item())
@@ -83,22 +84,3 @@ class temp_graph_trainer(base_trainer):
                 # print('new_link_prd_ap_mean', np.mean(np.array(ap_scores_prd_new)))
                 # print('----------------------------------')
         print('----------------------------------')
-
-    @torch.no_grad()
-    def val_one(self, device):
-        return self.test_one(device)
-
-    @torch.no_grad()
-    def test_one(self, device):
-        self.model.eval()
-        loss = 0
-        h, c = None, None
-        for time, snapshot in enumerate(self.test_data):
-            if self.cfg.MODEL.model in ["GCLSTM"]:
-                y_hat, h, c = self.model(snapshot.x.to(device), snapshot.edge_index.to(device), snapshot.edge_attr.to(device), h, c)
-            else:
-                y_hat = self.model(snapshot.x.to(device), snapshot.edge_index.to(device), snapshot.edge_attr.to(device))
-            loss = loss + self.criterion(y_hat, snapshot.y.to(device))
-        loss = loss / (time+1)
-        loss = loss.item()
-        return loss
