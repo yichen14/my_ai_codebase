@@ -4,7 +4,6 @@ import torch.nn.functional as F
 
 def dispatcher(cfg):
     loss_name = cfg.LOSS.loss
-    assert loss_name != "none"
     if loss_name == "cross_entropy":
         from .loss import cross_entropy
         return cross_entropy(cfg)
@@ -18,4 +17,4 @@ def dispatcher(cfg):
     elif loss_name == "MSEloss":
         return nn.MSELoss()
     else:
-        raise NotImplementedError
+        return None

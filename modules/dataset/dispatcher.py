@@ -3,7 +3,7 @@ import utils
 import torch_geometric.transforms as T
 from torch_geometric.datasets import Planetoid
 
-def dispatcher(cfg):
+def dispatcher(cfg, device = "cuda:0"):
     dataset_name = cfg.DATASET.dataset
     assert dataset_name != "none"
     if dataset_name == "cora":
@@ -17,6 +17,6 @@ def dispatcher(cfg):
         return loader.get_dataset()
     if dataset_name in ["dblp", "enron10", "fb"]:
         from .temporal_graph import temporal_graph as temporal_graph_dataloader
-        return temporal_graph_dataloader(cfg)
+        return temporal_graph_dataloader(cfg, device)
     else:
         raise NotImplementedError

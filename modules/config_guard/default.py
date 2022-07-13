@@ -122,7 +122,9 @@ _C.METRIC.SEGMENTATION.fg_only = False
 #######################
 _C.DATASET = CN()
 _C.DATASET.dataset = 'cifar10'
-_C.DATASET.use_feat = False
+_C.DATASET.TEMPORAL = CN()
+_C.DATASET.TEMPORAL.use_feat = False
+_C.DATASET.TEMPORAL.test_len = 1
 _C.DATASET.cache_all_data = False
 _C.DATASET.NUMPY_READER = CN()
 _C.DATASET.NUMPY_READER.train_data_npy_path = "/"
@@ -158,6 +160,7 @@ _C.DATASET.TRANSFORM.TEST = _C.DATASET.TRANSFORM.TRAIN.clone()
 _C.ATTACK = CN()
 _C.ATTACK.method = "none"
 _C.ATTACK.ptb_rate = 0.1
+_C.ATTACK.attack_data_path = "/"
 
 #######################
 # Task-specific Settings

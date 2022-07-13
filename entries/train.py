@@ -19,13 +19,13 @@ import os
 from tqdm import tqdm, trange
 
 def setup(cfg, args):
-    # set up dataset
-    data = dataset.dispatcher(cfg)
-    # data = temporal_graph(args.data_name, attack_flag = True, attack_func = attack_func)
-
     # get device
     device = args.device 
     # device = utils.guess_device()
+
+    # set up dataset
+    data = dataset.dispatcher(cfg, device)
+    # data = temporal_graph(args.data_name, attack_flag = True, attack_func = attack_func)
 
     # set up model
     if cfg.MODEL.encoder != "none":
@@ -57,10 +57,10 @@ def setup(cfg, args):
 
 def main():
     args = parse_args()
-    np.random.seed(args.seed)
-    torch.manual_seed(args.seed)
     update_config_from_yaml(cfg, args)
-
+    np.random.seed(cfg.seed)
+    torch.manual_seed(cfg.seed)
+    
     data, model, trainer_func, optimizer, criterion, device = setup(cfg, args)
     trainer = trainer_func(cfg, model, criterion, data, optimizer, device)
 
