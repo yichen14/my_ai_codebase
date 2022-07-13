@@ -4,6 +4,7 @@ import os
 import torch
 import pickle
 from tqdm import tqdm, trange
+import numpy as np
 
 def random_attack_temporal(cfg, adj_matrix_lst, device):
     """
@@ -19,30 +20,35 @@ def random_attack_temporal(cfg, adj_matrix_lst, device):
     ptb_rate = cfg.ATTACK.ptb_rate
     test_len = cfg.DATASET.TEMPORAL.test_len
     random_attack = Random(device=device)
-    num_edges = adj_matrix_lst[0].shape[0]
-    num_modified = int(num_edges*ptb_rate)
     path = os.path.join(attack_data_path, "{}_ptb_rate_{}_random".format(cfg.DATASET.dataset, ptb_rate))
 
-    if "{}_ptb_rate_{}_random".format(cfg.DATASET.dataset, ptb_rate) not in os.listdir(attack_data_path):
+    if cfg.ATTACK.new_attack or not os.path.exists(os.path.join(path, "adj_ptb_{}_test_{}.pickle".format(ptb_rate,test_len))):
         # generate attacked data
         print("Random attack on dataset: {} ptb_rate: {}".format(cfg.DATASET.dataset, ptb_rate))
-        os.mkdir(path)
+        if not os.path.exists(path):
+            os.mkdir(path)
+        attack_data = []
         for time_step in trange(len(adj_matrix_lst)-1):
+            num_edges = np.sum(adj_matrix_lst[time_step])
+            num_modified = int(num_edges*ptb_rate)
             adj_matrix = adj_matrix_lst[time_step]
             random_attack.attack(adj_matrix, n_perturbations = num_modified, type="flip")
-            pickle_path = os.path.join(path, "adj_ptb_{}_time_{}.pickle".format(ptb_rate, time_step))
-            with open(pickle_path, 'ab') as handle:
-                pickle.dump(random_attack.modified_adj, handle)
+            attack_data.append(random_attack.modified_adj)
+        pickle_path = os.path.join(path, "adj_ptb_{}_test_{}.pickle".format(ptb_rate,test_len))
+        with open(pickle_path, 'ab') as handle:
+            pickle.dump(attack_data, handle)
 
-    # data already attacked 
+    # data already attacked
+    pickle_path = os.path.join(path, "adj_ptb_{}_test_{}.pickle".format(ptb_rate,test_len))
+    with open(pickle_path, 'rb') as handle:
+        attacked_adj = pickle.load(handle,encoding="latin1")
+        attacked_matrix_lst = attacked_adj
+    
+    assert len(attacked_matrix_lst) == len(adj_matrix_lst) - test_len
+    
     print("Load data from {}_ptb_rate_{}_random.".format(cfg.DATASET.dataset, ptb_rate), "test_len=", test_len)
-    for time_step in trange(len(adj_matrix_lst)):
-        if time_step < (len(adj_matrix_lst)-test_len):
-            pickle_path = os.path.join(path, "adj_ptb_{}_time_{}.pickle".format(ptb_rate, time_step))
-            with open(pickle_path, 'rb') as handle:
-                attacked_adj = pickle.load(handle,encoding="latin1")
-                attacked_matrix_lst.append(attacked_adj)
-        else:
+    for time_step in trange(len(adj_matrix_lst) - test_len, len(adj_matrix_lst)):
             attacked_matrix_lst.append(adj_matrix_lst[time_step])
 
+    assert len(attacked_matrix_lst) == len(adj_matrix_lst)
     return attacked_matrix_lst

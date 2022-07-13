@@ -16,6 +16,15 @@ def sparse_to_tuple(sparse_mx):
     shape = sparse_mx.shape
     return coords, values, shape
 
+def csr_matrix_to_tensor(matrices):
+    adj_orig_dense_list = []
+    for i in range(len(matrices)):
+        data = matrices[i].tocoo()
+        values = data.data
+        indices = np.vstack((data.row, data.col))
+        adj_orig_dense_list.append(torch.sparse.FloatTensor(torch.LongTensor(indices), torch.FloatTensor(values), torch.Size(data.shape)).to_dense())
+    return adj_orig_dense_list
+
 class temporal_graph(torch_geometric.data.Dataset):
     
     def __init__(self, cfg, device):
@@ -29,35 +38,29 @@ class temporal_graph(torch_geometric.data.Dataset):
 
         attack_func = attack.dispatcher(cfg)
 
-        adj_time_list_path = os.path.join(get_dataset_root(), data_name, "adj_time_list.pickle")
+        self.prepare(data_name, use_feat, attack_flag, attack_func)
+
+    def prepare(self, data_name, use_feat, attack_flag = False, attack_func = None):
+        
+        adj_time_list_path = os.path.join("./data", data_name, "adj_time_list.pickle")
         with open(adj_time_list_path, 'rb') as handle:
             self.adj_time_list = pickle.load(handle,encoding="latin1")
 
-        adj_orig_dense_list_path = os.path.join(get_dataset_root(), data_name, "adj_orig_dense_list.pickle")
-        with open(adj_orig_dense_list_path, 'rb') as handle:
-            self.adj_orig_dense_list = pickle.load(handle,encoding="bytes")
+        if attack_flag and attack_func is not None:
+            self.adj_time_list = attack_func(self.cfg, self.adj_time_list, self.device)
 
         self.time_step = len(self.adj_time_list)
+        self.adj_orig_dense_list = csr_matrix_to_tensor(self.adj_time_list)
         self.num_nodes = self.adj_orig_dense_list[0].shape[0]
-
+        
         if use_feat:
             feat_path = os.path.join(get_dataset_root(), data_name, "feat.npy")
             self.feat = np.load(feat_path)
         else:
             self.feat = [torch.tensor(np.eye(self.num_nodes).astype(np.float32)) for i in range(self.time_step)]
-
         self.feat_dim = self.feat[0].shape[1]
-        self.prepare(attack_flag, attack_func)
 
-    def prepare(self, attack_flag = False, attack_func = None):
-        if attack_flag and attack_func is not None:
-
-            self.poisioned_adj_time_list = attack_func(self.cfg, self.adj_time_list, self.device)
-        else:
-            self.poisioned_adj_time_list = self.adj_time_list
-        
         self.data = [Data(x=self.feat[i], edge_index = self.adj_time_list[i]) for i in range(self.time_step)]
-        self.poisioned_data = [Data(x=self.feat[i], edge_index = self.poisioned_adj_time_list[i]) for i in range(self.time_step)]
         self.pos_edges_l, self.neg_edges_l = self.mask_edges_prd()
         self.prepare_edge_list()
 

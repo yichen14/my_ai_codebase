@@ -26,7 +26,8 @@ TRAIN:
 ATTACK:
   method: "random"
   ptb_rate: 0.5
-  attack_data_path: "/home/randomgraph/data/attack_data"
+  attack_data_path: "./data/attack_data"
+  new_attack: True
 
 TASK_SPECIFIC:
   GEOMETRIC:
