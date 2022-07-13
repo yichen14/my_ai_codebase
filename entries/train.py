@@ -11,29 +11,29 @@ from config_guard import cfg, update_config_from_yaml
 import utils
 from utils.arg_parser import parse_args
 from dataset.temporal_graph import temporal_graph
+import dataset
 import models
 import trainer
 import loss
-import attack
 import os
 from tqdm import tqdm, trange
 
 def setup(cfg, args):
-
-    # set up attacker
-    attack_func = attack.dispatcher(cfg)
-
     # set up dataset
-    data = temporal_graph(args.data_name)
+    data = dataset.dispatcher(cfg)
     # data = temporal_graph(args.data_name, attack_flag = True, attack_func = attack_func)
+
+    # get device
+    device = args.device 
+    # device = utils.guess_device()
 
     # set up model
     if cfg.MODEL.encoder != "none":
         model_cls, encoder_cls = models.dispatcher(cfg)
-        model = model_cls(encoder_cls(cfg)).to(args.device)
+        model = model_cls(encoder_cls(cfg)).to(device)
     else:
         model_cls = models.dispatcher(cfg)
-        model = model_cls(data.feat_dim, args.device).to(args.device)
+        model = model_cls(data.feat_dim, device).to(device)
 
     # set up optimizer
     if cfg.TRAIN.OPTIMIZER.type == "adadelta":
@@ -47,21 +47,22 @@ def setup(cfg, args):
                                 weight_decay = cfg.TRAIN.OPTIMIZER.weight_decay)
     else:
         raise NotImplementedError("Got unsupported optimizer: {}".format(cfg.TRAIN.OPTIMIZER.type))
+    # set up loss function (note that we do not need to give criterion to a graph autoencoder)
+    criterion = loss.dispatcher(cfg)
 
     # set up trainer
     trainer_func = trainer.dispatcher(cfg)
-    temporal_trainer = trainer_func(args, model, data, optimizer)
 
-    return data, model, temporal_trainer, optimizer, attack_func
+    return data, model, trainer_func, optimizer, criterion, device
 
 def main():
-    
     args = parse_args()
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
     update_config_from_yaml(cfg, args)
 
-    data, model, trainer, optimizer, attack_func = setup(cfg, args)
+    data, model, trainer_func, optimizer, criterion, device = setup(cfg, args)
+    trainer = trainer_func(cfg, model, criterion, data, optimizer, device)
 
     trainer.train()
     # # start training
