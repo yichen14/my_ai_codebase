@@ -18,11 +18,13 @@ def sparse_to_tuple(sparse_mx):
 
 class temporal_graph(torch_geometric.data.Dataset):
     
-    def __init__(self, cfg):
-        super().__init__(cfg)
-        
-        data_name = cfg.DATASET.dataset
-        use_feat = cfg.DATASET.use_feat
+    def __init__(self, cfg, device):
+        super().__init__(cfg, device)
+        self.cfg = cfg
+        self.device = device
+
+        data_name = self.cfg.DATASET.dataset
+        use_feat = cfg.DATASET.TEMPORAL.use_feat
         attack_flag = True if cfg.ATTACK.method != "none" else False
 
         attack_func = attack.dispatcher(cfg)
@@ -39,7 +41,8 @@ class temporal_graph(torch_geometric.data.Dataset):
         self.num_nodes = self.adj_orig_dense_list[0].shape[0]
 
         if use_feat:
-            self.feat = np.load('../data/{0}/feat.npy'.format(data_name))
+            feat_path = os.path.join(get_dataset_root(), data_name, "feat.npy")
+            self.feat = np.load(feat_path)
         else:
             self.feat = [torch.tensor(np.eye(self.num_nodes).astype(np.float32)) for i in range(self.time_step)]
 
@@ -47,9 +50,9 @@ class temporal_graph(torch_geometric.data.Dataset):
         self.prepare(attack_flag, attack_func)
 
     def prepare(self, attack_flag = False, attack_func = None):
-        
         if attack_flag and attack_func is not None:
-            self.poisioned_adj_time_list = attack_func(self.adj_time_list)
+
+            self.poisioned_adj_time_list = attack_func(self.cfg, self.adj_time_list, self.device)
         else:
             self.poisioned_adj_time_list = self.adj_time_list
         

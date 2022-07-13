@@ -16,8 +16,8 @@ class temp_graph_trainer(base_trainer):
         self.log_epoch = cfg.TRAIN.log_epoch
         self.temporal_data = dataset_module
 
-    def train(self, test_len = 1):
-
+    def train(self):
+        test_len = self.cfg.DATASET.TEMPORAL.test_len
         x_in = self.temporal_data.feat
         x_in = Variable(torch.stack(x_in)).to(self.device)
         edge_idx_list = self.temporal_data.edge_idx_list
