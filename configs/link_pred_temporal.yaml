@@ -6,13 +6,16 @@ MODEL:
 
 DATASET:
   dataset: "fb"
+  use_feat: False
+
   
 LOSS:
   loss: 'MSEloss'
 
 TRAIN:
-  max_epochs: 100
-  batch_size: 32
+  max_epochs: 1000
+  log_epoch: 10
+  batch_size: 64
   initial_lr: 0.01
   OPTIMIZER:
     type: "ADAM"

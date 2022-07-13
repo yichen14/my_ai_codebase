@@ -4,6 +4,9 @@ import scipy.sparse as sp
 import torch_geometric
 import torch
 from torch_geometric.data import Data
+from utils import get_dataset_root
+import attack
+import os
 
 def sparse_to_tuple(sparse_mx):
     if not sp.isspmatrix_coo(sparse_mx):
@@ -15,13 +18,21 @@ def sparse_to_tuple(sparse_mx):
 
 class temporal_graph(torch_geometric.data.Dataset):
     
-    def __init__(self, data_name, use_feat = False, attack_flag = False, attack_func = None):
-        super().__init__(data_name, use_feat, attack_flag, attack_func)
+    def __init__(self, cfg):
+        super().__init__(cfg)
         
-        with open('../data/{0}/adj_time_list.pickle'.format(data_name), 'rb') as handle:
+        data_name = cfg.DATASET.dataset
+        use_feat = cfg.DATASET.use_feat
+        attack_flag = True if cfg.ATTACK.method != "none" else False
+
+        attack_func = attack.dispatcher(cfg)
+
+        adj_time_list_path = os.path.join(get_dataset_root(), data_name, "adj_time_list.pickle")
+        with open(adj_time_list_path, 'rb') as handle:
             self.adj_time_list = pickle.load(handle,encoding="latin1")
 
-        with open('../data/{0}/adj_orig_dense_list.pickle'.format(data_name), 'rb') as handle:
+        adj_orig_dense_list_path = os.path.join(get_dataset_root(), data_name, "adj_orig_dense_list.pickle")
+        with open(adj_orig_dense_list_path, 'rb') as handle:
             self.adj_orig_dense_list = pickle.load(handle,encoding="bytes")
 
         self.time_step = len(self.adj_time_list)

@@ -10,16 +10,16 @@ import numpy as np
 # from torch_geometric_temporal.signal import temporal_signal_split
 
 class temp_graph_trainer(base_trainer):
-    def __init__(self, args, model, temporal_data, optimizer):
-        self.args = args
-        self.model = model
-        self.temporal_data = temporal_data
-        self.optimizer = optimizer
+    def __init__(self, cfg, model, criterion, dataset_module, optimizer, device) -> None:
+        super(temp_graph_trainer, self).__init__(cfg, model, criterion, dataset_module, optimizer, device)
+        self.max_epochs = cfg.TRAIN.max_epochs
+        self.log_epoch = cfg.TRAIN.log_epoch
+        self.temporal_data = dataset_module
 
     def train(self, test_len = 1):
 
         x_in = self.temporal_data.feat
-        x_in = Variable(torch.stack(x_in)).to(self.args.device)
+        x_in = Variable(torch.stack(x_in)).to(self.device)
         edge_idx_list = self.temporal_data.edge_idx_list
         adj_orig_dense_list = self.temporal_data.adj_orig_dense_list
         pos_edges_l, neg_edges_l = self.temporal_data.pos_edges_l, self.temporal_data.neg_edges_l
@@ -32,12 +32,12 @@ class temp_graph_trainer(base_trainer):
         print(len(adj_orig_dense_list))
 
         for i in range(self.temporal_data.time_step):
-            pos_edges_l[i] = torch.tensor(pos_edges_l[i]).to(self.args.device)
-            neg_edges_l[i] = torch.tensor(neg_edges_l[i]).to(self.args.device)
-            # adj_orig_dense_list[i] = torch.tensor(adj_orig_dense_list[i]).to(self.args.device)
-            edge_idx_list[i] = torch.tensor(edge_idx_list[i]).to(self.args.device)
+            pos_edges_l[i] = torch.tensor(pos_edges_l[i]).to(self.device)
+            neg_edges_l[i] = torch.tensor(neg_edges_l[i]).to(self.device)
+            # adj_orig_dense_list[i] = torch.tensor(adj_orig_dense_list[i]).to(self.device)
+            edge_idx_list[i] = torch.tensor(edge_idx_list[i]).to(self.device)
 
-        for k in range(self.args.n_epoch):
+        for k in range(self.max_epochs):
             self.optimizer.zero_grad()
             start_time = time.time()
             kld_loss, nll_loss, _, _, hidden_st = self.model(x_in[seq_start:seq_end]
@@ -55,7 +55,7 @@ class temp_graph_trainer(base_trainer):
             print('nll_loss =', nll_loss.mean().item())
             print('loss =', loss.mean().item())
 
-            if k % self.args.log_epoch == 0:
+            if k % self.log_epoch == 0:
                 _, _, enc_means, pri_means, _ = self.model(x_in[seq_end:seq_len]
                                               , edge_idx_list[seq_end:seq_len]
                                               , adj_orig_dense_list[seq_end:seq_len]

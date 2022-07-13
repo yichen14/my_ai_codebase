@@ -3,6 +3,11 @@ from deeprobust.graph.data import Dataset, Dpr2Pyg, Pyg2Dpr
 import os
 import torch
 
+# TODO: save the attacked data to local, and load it when they being used
+def save_data(path):
+
+    pass
+
 def generate_random_attack(data, randomness, device):
     """
         perform a random attack on data
