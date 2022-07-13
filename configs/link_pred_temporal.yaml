@@ -1,5 +1,6 @@
 name: "link_pred_temporal"
 task: "temporal_link_prediction"
+seed: 123
 
 MODEL:
   model: "VGRNN"

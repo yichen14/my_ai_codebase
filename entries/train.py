@@ -57,10 +57,10 @@ def setup(cfg, args):
 
 def main():
     args = parse_args()
-    np.random.seed(args.seed)
-    torch.manual_seed(args.seed)
     update_config_from_yaml(cfg, args)
-
+    np.random.seed(cfg.seed)
+    torch.manual_seed(cfg.seed)
+    
     data, model, trainer_func, optimizer, criterion, device = setup(cfg, args)
     trainer = trainer_func(cfg, model, criterion, data, optimizer, device)
 
