@@ -7,8 +7,8 @@ from torch_geometric.utils import negative_sampling
 import torch_geometric.transforms as T
 
 class autoencoder_trainer(base_trainer):
-    def __init__(self, cfg, model, criterion, dataset_module, optimizer, attack_func, device) -> None:
-        super(autoencoder_trainer, self).__init__(cfg, model, criterion, dataset_module, optimizer, attack_func, device)
+    def __init__(self, cfg, model, criterion, dataset_module, optimizer, device) -> None:
+        super(autoencoder_trainer, self).__init__(cfg, model, criterion, dataset_module, optimizer, device)
 
         transform = T.Compose([
             T.ToUndirected(merge = True),
@@ -17,14 +17,15 @@ class autoencoder_trainer(base_trainer):
                         split_labels=True, add_negative_train_samples=False),
         ]) 
 
-        if attack_func != None:
-            print("Perform attack: ", cfg.ATTACK.method)
-            print("ptb_rate: ", cfg.ATTACK.ptb_rate)
-            attack_data = self.attack_func(dataset_module, cfg.ATTACK.ptb_rate, device)
-            data = transform(attack_data.data)
-        else:
-            data = transform(dataset_module[0])
-
+        # if attack_func != None:
+        #     print("Perform attack: ", cfg.ATTACK.method)
+        #     print("ptb_rate: ", cfg.ATTACK.ptb_rate)
+        #     attack_data = self.attack_func(dataset_module, cfg.ATTACK.ptb_rate, device)
+        #     data = transform(attack_data.data)
+        # else:
+        #     data = transform(dataset_module[0])
+        
+        data = transform(dataset_module[0])
         self.train_data, self.val_data, self.test_data = data
 
     def train_one(self, device):

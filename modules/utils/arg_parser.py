@@ -34,7 +34,7 @@ def parse_args():
     parser.add_argument('--evaluate_epoch', type=int, default=10,
                         help='Epoch interval of evaluation.')
 
-    parser.add_argument('--cfg', help = "specify particular yaml configuration to use", default = "../configs/link_pred_temporal.yaml", type = str)
+    parser.add_argument('--cfg', help = "specify particular yaml configuration to use", default = "./configs/link_pred_temporal.yaml", type = str)
     parser.add_argument('--load', help="specify saved checkpoint to evaluate", required=False, type=str)
     parser.add_argument("--opts", help="Command line options to overwrite configs", default=[], nargs=argparse.REMAINDER)
 
