@@ -50,10 +50,10 @@ class temp_graph_trainer(base_trainer):
     
             # nn.utils.clip_grad_norm(self.model.parameters(), 10)
 
-            print('epoch: ', k)
-            print('kld_loss =', kld_loss.mean().item())
-            print('nll_loss =', nll_loss.mean().item())
-            print('loss =', loss.mean().item())
+            # print('epoch: ', k)
+            # print('kld_loss =', kld_loss.mean().item())
+            # print('nll_loss =', nll_loss.mean().item())
+            # print('loss =', loss.mean().item())
 
             if k % self.args.log_epoch == 0:
                 _, _, enc_means, pri_means, _ = self.model(x_in[seq_end:seq_len]
