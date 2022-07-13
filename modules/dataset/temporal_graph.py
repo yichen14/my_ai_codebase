@@ -54,7 +54,7 @@ class temporal_graph(torch_geometric.data.Dataset):
         self.num_nodes = self.adj_orig_dense_list[0].shape[0]
         
         if use_feat:
-            feat_path = os.path.join(get_dataset_root(), data_name, "feat.npy")
+            feat_path = os.path.join("./data", data_name, "feat.npy")
             self.feat = np.load(feat_path)
         else:
             self.feat = [torch.tensor(np.eye(self.num_nodes).astype(np.float32)) for i in range(self.time_step)]
