@@ -227,7 +227,9 @@ def update_config_from_yaml(cfg, args):
         cfg.merge_from_file(cfg_path)
     
     # Command line options have highest priorities
+    print(args.opts)
     if args.opts:
+        print(args.opts)
         # empty by default
         old_cfg = deepcopy(cfg)
         cfg.merge_from_list(args.opts)

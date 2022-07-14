@@ -297,11 +297,3 @@ class temporal_graph(torch_geometric.data.Dataset):
 
         # NOTE: these edge lists only contain single direction of edge!
         return pos_edges_l, false_edges_l
-
-    def sparse_to_tuple(self, sparse_mx):
-        if not sp.isspmatrix_coo(sparse_mx):
-            sparse_mx = sparse_mx.tocoo()
-        coords = np.vstack((sparse_mx.row, sparse_mx.col)).transpose()
-        values = sparse_mx.data
-        shape = sparse_mx.shape
-        return coords, values, shape
