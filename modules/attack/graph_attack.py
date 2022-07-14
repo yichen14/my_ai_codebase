@@ -5,6 +5,7 @@ import torch
 import pickle
 from tqdm import tqdm, trange
 import numpy as np
+from utils import get_dataset_root
 
 def random_attack_temporal(cfg, adj_matrix_lst, device):
     """
@@ -22,7 +23,7 @@ def random_attack_temporal(cfg, adj_matrix_lst, device):
     test_len = cfg.DATASET.TEMPORAL.test_len
 
     random_attack = Random(device=device)
-    path = os.path.join(attack_data_path, "{}_ptb_rate_{}_random".format(cfg.DATASET.dataset, ptb_rate))
+    path = os.path.join(get_dataset_root(), attack_data_path, "{}_ptb_rate_{}_random".format(cfg.DATASET.dataset, ptb_rate))
 
     if cfg.ATTACK.new_attack or not os.path.exists(os.path.join(path, "adj_ptb_{}_test_{}.pickle".format(ptb_rate,test_len))):
         # generate attacked data
