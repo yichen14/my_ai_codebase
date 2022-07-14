@@ -17,7 +17,7 @@ def parse_args():
     parser.add_argument('--device', type=int, default=0,
                         help='device id')
 
-    parser.add_argument('--seed', type=int, default=None,
+    parser.add_argument('--seed', type=int, default=123,
                         help='Random seed.')
 
     parser.add_argument('--data_name', nargs='?', default=None,
@@ -49,6 +49,9 @@ def parse_args():
                         help='Iter interval of printing loss.')
     parser.add_argument('--evaluate_epoch', type=int, default=None,
                         help='Epoch interval of evaluation.')
+
+    parser.add_argument('--runs', type=int, default=10,
+                        help='Independent runs with different seeds.')
 
     parser.add_argument('--cfg', help = "specify particular yaml configuration to use", default = "./configs/link_pred_temporal.yaml", type = str)
     parser.add_argument('--load', help="specify saved checkpoint to evaluate", required=False, type=str)

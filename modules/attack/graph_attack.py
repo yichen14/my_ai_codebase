@@ -16,8 +16,6 @@ def random_attack_temporal(cfg, adj_matrix_lst, device):
         Return:
             attacked_csr_lst
     """
-    attacked_csr_lst = []
-    attacked_dense_lst = []
     attack_data_path = cfg.ATTACK.attack_data_path
     ptb_rate = cfg.ATTACK.ptb_rate
     test_len = cfg.DATASET.TEMPORAL.test_len
@@ -50,8 +48,9 @@ def random_attack_temporal(cfg, adj_matrix_lst, device):
     
     assert len(attacked_matrix_lst) == len(adj_matrix_lst) - test_len
     
-    for time_step in trange(len(adj_matrix_lst) - test_len, len(adj_matrix_lst)):
+    for time_step in range(len(adj_matrix_lst) - test_len, len(adj_matrix_lst)):
             attacked_matrix_lst.append(adj_matrix_lst[time_step])
 
     assert len(attacked_matrix_lst) == len(adj_matrix_lst)
     return attacked_matrix_lst
+

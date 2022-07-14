@@ -1,7 +1,7 @@
 import os
 import yaml
 from copy import deepcopy
-
+import utils
 from yacs.config import CfgNode as CN
 
 # ----------------------------
@@ -76,6 +76,7 @@ _C.TRAIN.lr_max_epoch = -1
 _C.TRAIN.step_down_gamma = 0.1
 _C.TRAIN.step_down_on_epoch = []
 _C.TRAIN.max_epochs = 100
+_C.TRAIN.log_epoch = 10
 _C.TRAIN.evaluate_epoch = 10
 _C.TRAIN.stopping_steps = 30
 _C.TRAIN.OPTIMIZER = CN()
@@ -126,7 +127,8 @@ _C.DATASET = CN()
 _C.DATASET.dataset = 'cifar10'
 _C.DATASET.TEMPORAL = CN()
 _C.DATASET.TEMPORAL.use_feat = False
-_C.DATASET.TEMPORAL.test_len = 1
+_C.DATASET.TEMPORAL.test_len = 3
+_C.DATASET.TEMPORAL.val_len = 1
 _C.DATASET.cache_all_data = False
 _C.DATASET.NUMPY_READER = CN()
 _C.DATASET.NUMPY_READER.train_data_npy_path = "/"

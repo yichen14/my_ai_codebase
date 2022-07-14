@@ -15,6 +15,7 @@ import dataset
 import models
 import trainer
 import loss
+from utils.metrics import Evaluation
 import os
 from tqdm import tqdm, trange
 
@@ -57,31 +58,23 @@ def setup(cfg, args):
 
 def main():
     args = parse_args()
-    update_config_from_yaml(cfg, args)
-    update_cfg_from_args(cfg, args)
-    np.random.seed(cfg.seed)
-    torch.manual_seed(cfg.seed)
+    test_auc, test_ap = [], []
+    for i in range(args.runs):
+        args.seed += 5
+        update_config_from_yaml(cfg, args)
+        update_cfg_from_args(cfg, args)
+        np.random.seed(cfg.seed)
+        torch.manual_seed(cfg.seed)
     
-    data, model, trainer_func, optimizer, criterion, device = setup(cfg, args)
-    trainer = trainer_func(cfg, model, criterion, data, optimizer, device)
+        data, model, trainer_func, optimizer, criterion, device = setup(cfg, args)
+        trainer = trainer_func(cfg, model, criterion, data, optimizer, device)
 
-    trainer.train()
-    # # start training
-    # best_val_auc = final_test_auc = 0
-    # for epoch in range(1, cfg.TRAIN.max_epochs):
-    #     loss_value = my_trainer.train_one(device) # train
-    #     val_auc = my_trainer.val_one(device) # eval
-    #     test_auc = my_trainer.test_one(device) # test
-    #     if val_auc > best_val_auc:
-    #         best_val_auc = val_auc
-    #         final_test_auc = test_auc
-    #     print(f'Epoch: {epoch:03d}, Loss: {loss_value:.4f}, Val: {val_auc:.4f}, '
-    #         f'Test: {test_auc:.4f}')
+        test_auc_, test_ap_ = trainer.train()
 
-    # print(f'Final Test: {final_test_auc:.4f}')
-
-    #z = model.encode(test_data.x, test_data.edge_index)
-    #final_edge_index = model.decode_all(z)
+        test_auc.append(test_auc_)
+        test_ap.append(test_ap_)
+    
+    print("{} runs, Test AUC {:.3f} +- {:.3f}, Test AP {:.3f} +- {:.3f}".format(args.runs, np.mean(test_auc), np.std(test_auc), np.mean(test_ap), np.std(test_ap)))
 
 if __name__ == '__main__':
     main()
