@@ -37,7 +37,7 @@ class temp_graph_trainer(base_trainer):
             # adj_orig_dense_list[i] = torch.tensor(adj_orig_dense_list[i]).to(self.device)
             edge_idx_list[i] = torch.tensor(edge_idx_list[i]).to(self.device)
 
-        for k in range(self.max_epochs):
+        for k in range(1, self.max_epochs):
             self.optimizer.zero_grad()
             start_time = time.time()
             kld_loss, nll_loss, _, _, hidden_st = self.model(x_in[seq_start:seq_end]

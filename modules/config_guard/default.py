@@ -161,6 +161,8 @@ _C.ATTACK = CN()
 _C.ATTACK.method = "none"
 _C.ATTACK.ptb_rate = 0.1
 _C.ATTACK.attack_data_path = "/"
+_C.ATTACK.RANDOM = CN()
+_C.ATTACK.RANDOM.method = "add"
 
 #######################
 # Task-specific Settings

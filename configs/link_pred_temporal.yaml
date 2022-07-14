@@ -9,22 +9,21 @@ DATASET:
   dataset: "fb"
   TEMPORAL:
     use_feat: False
-    test_len: 1
-
-LOSS:
-  loss: 'MSEloss'
+    test_len: 3
 
 TRAIN:
-  max_epochs: 1000
+  max_epochs: 1500
   log_epoch: 10
   batch_size: 64
-  initial_lr: 5e-5
+  initial_lr: 0.01
   OPTIMIZER:
     type: "ADAM"
 
 ATTACK:
-  method: "random"
-  ptb_rate: 0.5
+  method: "none"
+  RANDOM:
+    method: "add"
+  ptb_rate: 0.9
   attack_data_path: "/home/randomgraph/data/attack_data"
 
 TASK_SPECIFIC:

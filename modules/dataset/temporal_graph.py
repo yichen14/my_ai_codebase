@@ -36,7 +36,6 @@ class temporal_graph(torch_geometric.data.Dataset):
         adj_orig_dense_list_path = os.path.join(get_dataset_root(), data_name, "adj_orig_dense_list.pickle")
         with open(adj_orig_dense_list_path, 'rb') as handle:
             self.adj_orig_dense_list = pickle.load(handle,encoding="bytes")
-
         self.time_step = len(self.adj_time_list)
         self.num_nodes = self.adj_orig_dense_list[0].shape[0]
 
@@ -51,12 +50,11 @@ class temporal_graph(torch_geometric.data.Dataset):
 
     def prepare(self, attack_flag = False, attack_func = None):
         if attack_flag and attack_func is not None:
-
-            self.poisioned_adj_time_list = attack_func(self.cfg, self.adj_time_list, self.device)
+            self.poisioned_adj_time_list, self.adj_orig_dense_list = attack_func(self.cfg, self.adj_time_list, self.device)
         else:
             self.poisioned_adj_time_list = self.adj_time_list
         
-        self.data = [Data(x=self.feat[i], edge_index = self.adj_time_list[i]) for i in range(self.time_step)]
+        self.data = [Data(x=self.feat[i], edge_index = self.poisioned_adj_time_list[i]) for i in range(self.time_step)]
         self.poisioned_data = [Data(x=self.feat[i], edge_index = self.poisioned_adj_time_list[i]) for i in range(self.time_step)]
         self.pos_edges_l, self.neg_edges_l = self.mask_edges_prd()
         self.prepare_edge_list()
@@ -71,7 +69,7 @@ class temporal_graph(torch_geometric.data.Dataset):
         adj_train_l, train_edges_l, val_edges_l = [], [], []
         val_edges_false_l, test_edges_l, test_edges_false_l = [], [], []
         edges_list = []
-        adjs_list = self.adj_time_list
+        adjs_list = self.poisioned_adj_time_list
 
         for i in range(0, len(adjs_list)):
             # Function to build test set with 10% positive links

@@ -2,6 +2,8 @@ from signal import Sigmasks
 import torch
 import torch.nn.functional as F
 import torch_geometric_temporal.nn.recurrent as rcrgcn
+from .autoencoder import InnerProductDecoder
+from torch_geometric.utils import negative_sampling
 
 ####################################################################################################################
 # models from PyTorch Geometric Temporal
@@ -26,6 +28,7 @@ Temporal Layer: LSTM
 GNN Layer: Chebyshev
 
 """
+EPS = 1e-15
 
 class RecurrentGCN_EGCNH(torch.nn.Module):
     def __init__(self, cfg):
@@ -35,7 +38,7 @@ class RecurrentGCN_EGCNH(torch.nn.Module):
         inner_prod = cfg.TASK_SPECIFIC.GEOMETRIC.inner_prod
 
         self.recurrent = rcrgcn.EvolveGCNH(num_nodes, in_channels)
-        
+        self.decoder = InnerProductDecoder() 
         if not inner_prod:
             self.classifier = torch.nn.Sequential(
                 torch.nn.Linear(in_channels, 1), 
@@ -44,12 +47,20 @@ class RecurrentGCN_EGCNH(torch.nn.Module):
         else:
             self.classifier = None
         
-
     def forward(self, x, edge_index, edge_weight):
-        h = self.recurrent(x, edge_index, edge_weight)
-        h = F.relu(h)
-        h = self.classifer(h)
-        return h
+        z = self.recurrent(x, edge_index, edge_weight)
+        # h = F.relu(h)
+        # h = self.classifer(h)
+        pos_loss = -torch.log(
+            self.decoder(z, pos_edge_index, sigmoid=True) + EPS).mean()
+
+        if neg_edge_index is None:
+            neg_edge_index = negative_sampling(pos_edge_index, z.size(0))
+        neg_loss = -torch.log(1 -
+                              self.decoder(z, neg_edge_index, sigmoid=True) +
+                              EPS).mean()        
+
+        return pos_loss+neg_loss
 
 class RecurrentGCN_EGCNO(torch.nn.Module):
     def __init__(self, cfg):
