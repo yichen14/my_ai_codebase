@@ -390,7 +390,7 @@ class InnerProductDecoder(nn.Module):
 
 
 class VGRNN(nn.Module):
-    def __init__(self, x_dim, device = 0, h_dim = 32, z_dim = 32, n_layers = 1, eps = 1e-10, conv='GCN', bias=False):
+    def __init__(self, x_dim, device = 0, h_dim = 32, z_dim = 16, n_layers = 1, eps = 1e-10, conv='GCN', bias=False):
         super(VGRNN, self).__init__()
         
         self.x_dim = x_dim

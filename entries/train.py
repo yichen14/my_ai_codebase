@@ -6,7 +6,7 @@ import torch
 import torch.optim as optim
 
 from sklearn.metrics import roc_auc_score
-from config_guard import cfg, update_config_from_yaml
+from config_guard import cfg, update_config_from_yaml, update_cfg_from_args
 
 import utils
 from utils.arg_parser import parse_args
@@ -58,6 +58,7 @@ def setup(cfg, args):
 def main():
     args = parse_args()
     update_config_from_yaml(cfg, args)
+    update_cfg_from_args(cfg, args)
     np.random.seed(cfg.seed)
     torch.manual_seed(cfg.seed)
     
