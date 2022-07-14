@@ -1,6 +1,6 @@
 name: "link_pred_temporal"
 task: "temporal_link_prediction"
-seed: 123
+seed: 321
 
 MODEL:
   model: "VGRNN"
@@ -13,7 +13,7 @@ DATASET:
 
 TRAIN:
   max_epochs: 1500
-  log_epoch: 10
+  log_interval: 10
   batch_size: 64
   initial_lr: 0.01
   OPTIMIZER:
