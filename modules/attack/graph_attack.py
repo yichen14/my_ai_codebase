@@ -6,6 +6,7 @@ import pickle
 from tqdm import tqdm, trange
 import numpy as np
 from utils import get_dataset_root
+import logging
 
 def random_attack_temporal(cfg, adj_matrix_lst, device):
     """
@@ -25,11 +26,11 @@ def random_attack_temporal(cfg, adj_matrix_lst, device):
 
     if cfg.ATTACK.new_attack or not os.path.exists(os.path.join(path, "adj_ptb_{}_test_{}.pickle".format(ptb_rate,test_len))):
         # generate attacked data
-        print("Random attack on dataset: {} ptb_rate: {}".format(cfg.DATASET.dataset, ptb_rate))
+        logging.info("Random attack on dataset: {} ptb_rate: {}".format(cfg.DATASET.dataset, ptb_rate))
         if not os.path.exists(path):
             os.mkdir(path)
         attack_data = []
-        for time_step in trange(len(adj_matrix_lst)-test_len):
+        for time_step in range(len(adj_matrix_lst)-test_len):
             num_edges = np.sum(adj_matrix_lst[time_step])
             num_modified = int(num_edges*ptb_rate)//2
             adj_matrix = adj_matrix_lst[time_step]
@@ -40,7 +41,7 @@ def random_attack_temporal(cfg, adj_matrix_lst, device):
             pickle.dump(attack_data, handle)
 
     # data already attacked
-    print("Load data from {}_ptb_rate_{}_random.".format(cfg.DATASET.dataset, ptb_rate), "test_len=", test_len)
+    logging.info("Load data from {}_ptb_rate_{}_random_{}.".format(cfg.DATASET.dataset, ptb_rate, test_len))
     pickle_path = os.path.join(path, "adj_ptb_{}_test_{}.pickle".format(ptb_rate,test_len))
     with open(pickle_path, 'rb') as handle:
         attacked_adj = pickle.load(handle,encoding="latin1")

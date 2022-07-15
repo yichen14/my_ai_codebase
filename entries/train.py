@@ -1,6 +1,5 @@
 import __init_lib_path
 
-import argparse
 import numpy as np
 import torch
 import torch.optim as optim
@@ -8,16 +7,13 @@ import torch.optim as optim
 from sklearn.metrics import roc_auc_score
 from config_guard import cfg, update_config_from_yaml, update_cfg_from_args
 
-import utils
 from utils.arg_parser import parse_args
-from dataset.temporal_graph import temporal_graph
 import dataset
 import models
 import trainer
 import loss
-from utils.metrics import Evaluation
-import os
-from tqdm import tqdm, trange
+import logging
+import datetime
 
 def setup(cfg, args):
     # get device
@@ -63,18 +59,22 @@ def main():
         args.seed += 5
         update_config_from_yaml(cfg, args)
         update_cfg_from_args(cfg, args)
+        logging.basicConfig(level=logging.INFO, handlers=[logging.FileHandler(cfg.LOGGING.log_file), logging.StreamHandler()])
         np.random.seed(cfg.seed)
         torch.manual_seed(cfg.seed)
-    
+
+        logging.info("runs: {}/{}, time: {}, seed: {}".format(i, args.runs, datetime.datetime.now(), args.seed))
+        logging.info("---------------------start training---------------------")
+
         data, model, trainer_func, optimizer, criterion, device = setup(cfg, args)
         trainer = trainer_func(cfg, model, criterion, data, optimizer, device)
-
         test_auc_, test_ap_ = trainer.train()
-
+        
+        logging.info("---------------------end training---------------------")
         test_auc.append(test_auc_)
         test_ap.append(test_ap_)
     
-    print("{} runs, Test AUC {:.3f} +- {:.3f}, Test AP {:.3f} +- {:.3f}".format(args.runs, np.mean(test_auc), np.std(test_auc), np.mean(test_ap), np.std(test_ap)))
+    logging.info("{} runs, Test AUC {:.3f} +- {:.3f}, Test AP {:.3f} +- {:.3f}".format(args.runs, np.mean(test_auc), np.std(test_auc), np.mean(test_ap), np.std(test_ap)))
 
 if __name__ == '__main__':
     main()

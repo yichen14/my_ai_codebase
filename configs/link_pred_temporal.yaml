@@ -31,3 +31,7 @@ TASK_SPECIFIC:
     num_nodes: 20
     inner_prod: False
     filter_size: 2
+
+LOGGING:
+  log_file: None
+  model_file: None

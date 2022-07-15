@@ -201,6 +201,12 @@ _C.TASK_SPECIFIC.GEOMETRIC.inner_prod = False
 _C.TASK_SPECIFIC.GEOMETRIC.filter_size = 2
 _C.TASK_SPECIFIC.GEOMETRIC.emb_dim = 128
 
+#######################
+# LOGGING Settings
+#######################
+_C.LOGGING = CN()
+_C.LOGGING.log_file = None
+_C.LOGGING.model_file = None
 # ---------------------------
 # | End Default Config
 # ---------------------------
@@ -232,9 +238,7 @@ def update_config_from_yaml(cfg, args):
         cfg.merge_from_file(cfg_path)
     
     # Command line options have highest priorities
-    print(args.opts)
     if args.opts:
-        print(args.opts)
         # empty by default
         old_cfg = deepcopy(cfg)
         cfg.merge_from_list(args.opts)
@@ -251,17 +255,20 @@ def update_cfg_from_args(cfg, args):
     if args.data_name is not None:
         cfg.DATASET.dataset = args.data_name
     
+    if args.model_name is not None:
+        cfg.MODEL.model = args.model_name
+
     if args.batch_size is not None:
         cfg.TRAIN.batch_size = args.batch_size
     
     if args.lr is not None:
         cfg.TRAIN.initial_lr = args.lr
 
-    if args.n_epoch is not None:
-        cfg.TRAIN.max_epochs = args.n_epoch
+    if args.max_epoch is not None:
+        cfg.TRAIN.max_epochs = args.max_epoch
 
-    if args.log_epoch is not None:
-        cfg.TRAIN.log_interval = args.log_epoch
+    if args.log_interval is not None:
+        cfg.TRAIN.log_interval = args.log_interval
 
     if args.evaluate_epoch is not None:
         cfg.TRAIN.evaluate_epoch = args.evaluate_epoch
@@ -277,7 +284,19 @@ def update_cfg_from_args(cfg, args):
 
     if args.data_dir is not None:
         utils.set_dataset_root(args.data_dir)
-        
+    
+    if args.ptb_rate is not None:
+        cfg.ATTACK.ptb_rate = args.ptb_rate
+    
+    if args.attack_method is not None:
+        cfg.ATTACK.method = args.attack_method
+
+    if args.log_file is not None:
+        cfg.LOGGING.log_file = args.log_file
+
+    if args.model_file is not None:
+        cfg.LOGGING.model_file = args.model_file
+
     cfg.freeze()
     
 if __name__ == "__main__":

@@ -7,6 +7,7 @@ from torch_geometric.data import Data
 from utils import get_dataset_root
 import attack
 import os
+import logging
 
 def sparse_to_tuple(sparse_mx):
     if not sp.isspmatrix_coo(sparse_mx):
