@@ -21,7 +21,7 @@ TRAIN:
 
 ATTACK:
   method: "random"
-  ptb_rate: 0.5
+  ptb_rate: 0.2
   attack_data_path: "attack_data"
   new_attack: True
 

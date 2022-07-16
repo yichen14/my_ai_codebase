@@ -40,14 +40,14 @@ def parse_args():
     parser.add_argument('--emb_dim', type=int, default=None,
                         help='node embedding size.')
 
-    parser.add_argument('--lr', type=float, default=0.01,
+    parser.add_argument('--lr', type=float, default=None,
                         help='Learning rate.')
     parser.add_argument('--max_epoch', type=int, default=None,
                         help='Number of epoch.')
     
-    parser.add_argument('--ptb_rate', type=float, default=0.5,
+    parser.add_argument('--ptb_rate', type=float, default=None,
                         help='attack rate.')
-    parser.add_argument('--attack_method', type=str, default="random",
+    parser.add_argument('--attack_method', type=str, default=None,
                         help='attack_func.')
 
     parser.add_argument('--stopping_steps', type=int, default=None,
