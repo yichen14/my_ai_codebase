@@ -33,5 +33,5 @@ TASK_SPECIFIC:
     filter_size: 2
 
 LOGGING:
-  log_file: None
-  model_file: None
+  log_file: "none"
+  model_file: "none"
