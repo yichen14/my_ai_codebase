@@ -1,6 +1,6 @@
 name: "link_pred_temporal"
 task: "temporal_link_prediction"
-seed: 123
+seed: 321
 
 MODEL:
   model: "VGRNN"
@@ -9,24 +9,21 @@ DATASET:
   dataset: "fb"
   TEMPORAL:
     use_feat: False
-    test_len: 1
-
-LOSS:
-  loss: 'MSEloss'
+    test_len: 3
 
 TRAIN:
-  max_epochs: 1000
-  log_epoch: 10
+  max_epochs: 1500
+  log_interval: 10
   batch_size: 64
-  initial_lr: 5e-5
-
+  initial_lr: 0.01
   OPTIMIZER:
     type: "ADAM"
 
 ATTACK:
   method: "random"
   ptb_rate: 0.5
-  attack_data_path: "/home/randomgraph/data/attack_data"
+  attack_data_path: "attack_data"
+  new_attack: True
 
 TASK_SPECIFIC:
   GEOMETRIC:
@@ -34,3 +31,7 @@ TASK_SPECIFIC:
     num_nodes: 20
     inner_prod: False
     filter_size: 2
+
+LOGGING:
+  log_file: None
+  model_file: None

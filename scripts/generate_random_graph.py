@@ -10,28 +10,22 @@ from torch_geometric.datasets import Planetoid
 
 CORA_PATH = os.path.join(utils.get_dataset_root(), 'Cora')
 
-transform = T.Compose([
-    T.ToUndirected(merge = True),
-    T.ToDevice("cpu"),
-    T.RandomLinkSplit(num_val=0.05, num_test=0.1, is_undirected=True,
-                    add_negative_train_samples=False),
-])  
 
-cora_pyg = Planetoid(root = CORA_PATH, name="Cora", transform=transform)
+cora_pyg = Planetoid(root = CORA_PATH, name="Cora")
 #print(cora_pyg[0])
-cora_dpr = Pyg2Dpr(cora_pyg[0])
+cora_dpr = Pyg2Dpr(cora_pyg)
 print(cora_dpr)
 adj, features, labels = cora_dpr.adj, cora_dpr.features, cora_dpr.labels
-num_edges = cora_dpr.adj.shape[0]
+print(adj)
 
-print(cora_dpr.labels.shape)
-model = Random()
-model.attack(adj, n_perturbations=10)
-modified_adj = model.modified_adj
-cora_dpr.adj = modified_adj
+# print(cora_dpr.labels.shape)
+# model = Random()
+# model.attack(adj, n_perturbations=10)
+# modified_adj = model.modified_adj
+# cora_dpr.adj = modified_adj
 
-pyg_data = Dpr2Pyg(cora_dpr)
-print(pyg_data)
+# pyg_data = Dpr2Pyg(cora_dpr)
+# print(pyg_data)
 #print(modified_adj)
 # raw_dir = '/home/ruijiew2/Documents/RandomGraph/data/static/'
 # DATA_NAME = ['bill', 'election', 'timme']

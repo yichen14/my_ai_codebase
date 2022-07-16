@@ -1,7 +1,7 @@
 import os
 import yaml
 from copy import deepcopy
-
+import utils
 from yacs.config import CfgNode as CN
 
 # ----------------------------
@@ -77,6 +77,8 @@ _C.TRAIN.step_down_gamma = 0.1
 _C.TRAIN.step_down_on_epoch = []
 _C.TRAIN.max_epochs = 100
 _C.TRAIN.log_epoch = 10
+_C.TRAIN.evaluate_epoch = 10
+_C.TRAIN.stopping_steps = 30
 _C.TRAIN.OPTIMIZER = CN()
 _C.TRAIN.OPTIMIZER.type = 'SGD'
 _C.TRAIN.OPTIMIZER.momentum = 0.9
@@ -108,6 +110,7 @@ _C.VAL = CN()
 #######################
 _C.TEST = CN()
 _C.TEST.batch_size = 256
+_C.TEST.test_time_step = 1
 
 #######################
 # Metric Settings
@@ -124,7 +127,8 @@ _C.DATASET = CN()
 _C.DATASET.dataset = 'cifar10'
 _C.DATASET.TEMPORAL = CN()
 _C.DATASET.TEMPORAL.use_feat = False
-_C.DATASET.TEMPORAL.test_len = 1
+_C.DATASET.TEMPORAL.test_len = 3
+_C.DATASET.TEMPORAL.val_len = 1
 _C.DATASET.cache_all_data = False
 _C.DATASET.NUMPY_READER = CN()
 _C.DATASET.NUMPY_READER.train_data_npy_path = "/"
@@ -161,6 +165,7 @@ _C.ATTACK = CN()
 _C.ATTACK.method = "none"
 _C.ATTACK.ptb_rate = 0.1
 _C.ATTACK.attack_data_path = "/"
+_C.ATTACK.new_attack = True
 
 #######################
 # Task-specific Settings
@@ -194,7 +199,14 @@ _C.TASK_SPECIFIC.GEOMETRIC.num_features = -1
 _C.TASK_SPECIFIC.GEOMETRIC.num_nodes = -1
 _C.TASK_SPECIFIC.GEOMETRIC.inner_prod = False
 _C.TASK_SPECIFIC.GEOMETRIC.filter_size = 2
+_C.TASK_SPECIFIC.GEOMETRIC.emb_dim = 128
 
+#######################
+# LOGGING Settings
+#######################
+_C.LOGGING = CN()
+_C.LOGGING.log_file = None
+_C.LOGGING.model_file = None
 # ---------------------------
 # | End Default Config
 # ---------------------------
@@ -234,6 +246,60 @@ def update_config_from_yaml(cfg, args):
 
     cfg.freeze()
 
+def update_cfg_from_args(cfg, args):
+    cfg.defrost()
+
+    if args.seed is not None:
+        cfg.seed = args.seed
+    
+    if args.data_name is not None:
+        cfg.DATASET.dataset = args.data_name
+    
+    if args.model_name is not None:
+        cfg.MODEL.model = args.model_name
+
+    if args.batch_size is not None:
+        cfg.TRAIN.batch_size = args.batch_size
+    
+    if args.lr is not None:
+        cfg.TRAIN.initial_lr = args.lr
+
+    if args.max_epoch is not None:
+        cfg.TRAIN.max_epochs = args.max_epoch
+
+    if args.log_interval is not None:
+        cfg.TRAIN.log_interval = args.log_interval
+
+    if args.evaluate_epoch is not None:
+        cfg.TRAIN.evaluate_epoch = args.evaluate_epoch
+
+    if args.stopping_steps is not None:
+        cfg.TRAIN.stopping_steps = args.stopping_steps
+    
+    if args.emb_dim is not None:
+        cfg.TASK_SPECIFIC.GEOMETRIC.emb_dim = args.emb_dim
+    
+    if args.test_time_step is not None:
+        cfg.TEST.test_time_step = args.test_time_step
+
+    if args.data_dir is not None:
+        utils.set_dataset_root(args.data_dir)
+    
+    if args.ptb_rate is not None:
+        cfg.ATTACK.ptb_rate = args.ptb_rate
+    
+    if args.attack_method is not None:
+        cfg.ATTACK.method = args.attack_method
+
+    if args.log_file is not None:
+        cfg.LOGGING.log_file = args.log_file
+
+    if args.model_file is not None:
+        cfg.LOGGING.model_file = args.model_file
+
+    cfg.freeze()
+    
 if __name__ == "__main__":
     # debug print
     print(_C)
+

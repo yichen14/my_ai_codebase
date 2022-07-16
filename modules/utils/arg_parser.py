@@ -1,38 +1,65 @@
 import argparse
+import yaml
+import os
+
+def load_yaml(file_path):
+    """Load the YAML config file
+    Args:
+        file_path (_type_): _description_
+    """
+    with open(file_path, "r", errors="ignore") as stream:
+        yaml_data = yaml.safe_load(stream)
+
+    return yaml_data
 
 def parse_args():
     parser = argparse.ArgumentParser(description = "robust graph learning on dynamic graphs")
 
     parser.add_argument('--device', type=int, default=0,
                         help='device id')
+
     parser.add_argument('--seed', type=int, default=123,
                         help='Random seed.')
 
     parser.add_argument('--data_name', nargs='?', default='fb',
                         help='Choose a dataset from {dblp, enron10, fb}')
-    parser.add_argument('--data_dir', nargs='?', default='../data/',
+    parser.add_argument('--data_dir', nargs='?', default=None,
                         help='Input data path.')
+    
+    parser.add_argument('--model_name', type=str, default="VGRNN",
+                        help='Model name')                    
 
-    parser.add_argument('--test_time_step', type=int, default=1, help='number of test time steps')
+    parser.add_argument('--test_time_step', type=int, default=None, help='number of test time steps')
+
     parser.add_argument('--input_feat', type=int, default=1,
                         help='0: No pretrain, 1: Pretrain with the learned embeddings, 2: Pretrain with BERT.')
 
-    parser.add_argument('--batch_size', type=int, default=64,
+    parser.add_argument('--batch_size', type=int, default=None,
                         help='recommendation batch size.')
-    parser.add_argument('--emb_dim', type=int, default=128,
+
+    parser.add_argument('--emb_dim', type=int, default=None,
                         help='node embedding size.')
 
-    parser.add_argument('--lr', type=float, default=0.0001,
+    parser.add_argument('--lr', type=float, default=0.01,
                         help='Learning rate.')
-    parser.add_argument('--n_epoch', type=int, default=1000,
+    parser.add_argument('--max_epoch', type=int, default=None,
                         help='Number of epoch.')
-    parser.add_argument('--stopping_steps', type=int, default=30,
+    
+    parser.add_argument('--ptb_rate', type=float, default=0.5,
+                        help='attack rate.')
+    parser.add_argument('--attack_method', type=str, default="random",
+                        help='attack_func.')
+
+    parser.add_argument('--stopping_steps', type=int, default=None,
                         help='Number of epoch for early stopping')
 
-    parser.add_argument('--log_epoch', type=int, default=10,
+    parser.add_argument('--log_interval', type=int, default=None,
                         help='Iter interval of printing loss.')
-    parser.add_argument('--evaluate_epoch', type=int, default=10,
+    parser.add_argument('--evaluate_epoch', type=int, default=None,
                         help='Epoch interval of evaluation.')
+
+    parser.add_argument('--runs', type=int, default=10,
+                        help='Independent runs with different seeds.')
 
     parser.add_argument('--cfg', help = "specify particular yaml configuration to use", default = "./configs/link_pred_temporal.yaml", type = str)
     parser.add_argument('--load', help="specify saved checkpoint to evaluate", required=False, type=str)
@@ -40,7 +67,12 @@ def parse_args():
 
     args = parser.parse_args()
 
-    save_dir = '../trained_model/{}/entitydim{}_lr{}_pretrain{}/'.format(
-        args.data_name, args.emb_dim, args.lr, args.input_feat)
+    save_dir = './trained_model/{}_{}_{}_{}_lr_{}/'.format(
+        args.data_name, args.model_name, args.attack_method, args.ptb_rate, args.lr)
     args.save_dir = save_dir
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+    args.log_file = os.path.join(save_dir, 'log.txt')
+    args.model_file = os.path.join(save_dir, 'model.pt')
+
     return args
