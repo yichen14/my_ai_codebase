@@ -3,7 +3,7 @@ task: "static_link_prediction"
 
 MODEL:
   model: "VGAE"
-  encoder: "linear"
+  encoder: "GCN"
 
 DATASET:
   dataset: "enron10"
@@ -17,7 +17,7 @@ TRAIN:
 
 ATTACK:
   method: "random"
-  ptb_rate: 0.2
+  ptb_rate: 0.5
   attack_data_path: "attack_data"
   new_attack: True
     

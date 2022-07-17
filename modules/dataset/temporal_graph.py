@@ -81,10 +81,10 @@ class temporal_graph(torch_geometric.data.Dataset):
         self.adj_dense_merge_train = merge_graph(self.adj_orig_dense_list[:length-test_len])
         self.adj_sparse_merge_train = csr_matrix(self.adj_dense_merge_train.numpy())
         
-        self.adj_dense_merge_test = merge_graph(self.adj_orig_dense_list[length-test_len:])
+        self.adj_dense_merge_test = merge_graph(self.adj_orig_dense_list[length-test_len+val_len:])
         self.adj_sparse_merge_test = csr_matrix(np.array(self.adj_dense_merge_test.tolist()))
 
-        self.adj_dense_merge_val = merge_graph(self.adj_orig_dense_list[length-val_len:])
+        self.adj_dense_merge_val = merge_graph(self.adj_orig_dense_list[length-test_len:length-test_len+val_len])
         self.adj_sparse_merge_val = csr_matrix(np.array(self.adj_dense_merge_val.tolist()))
 
         def get_pos_neg_edge_lst(dense_matrix):
@@ -96,21 +96,25 @@ class temporal_graph(torch_geometric.data.Dataset):
                         neg_edge_lst.append([i, j])
                     elif dense_matrix[i, j] == 1.0 and [j, i] not in pos_edge_lst:
                         pos_edge_lst.append([i, j])
-            return torch.tensor(pos_edge_lst), torch.tensor(neg_edge_lst)
+            return pos_edge_lst, neg_edge_lst
 
         self.pos_edges_l_static_train, self.neg_edges_l_static_train  = get_pos_neg_edge_lst(self.adj_dense_merge_train)
         self.pos_edges_l_static_test, self.neg_edges_l_static_test = get_pos_neg_edge_lst(self.adj_dense_merge_test)
         self.pos_edges_l_static_val, self.neg_edges_l_static_val = get_pos_neg_edge_lst(self.adj_dense_merge_val)
 
         self.feat_static_train = merge_graph(self.feat[:length-test_len])
+        self.feat_static_test = merge_graph(self.feat[length-test_len+val_len:])
+        self.feat_static_val = merge_graph(self.feat[length-test_len:length-test_len+val_len])
 
-        self.feat_static_test = merge_graph(self.feat[length-test_len:])
-        self.feat_static_val = merge_graph(self.feat[length-val_len:])
-
-        self.edge_idx_train = torch.tensor(np.transpose(self.pos_edges_l_static_train.clone().detach()), dtype=torch.long)
-        self.edge_idx_test = torch.tensor(np.transpose(self.pos_edges_l_static_test.clone().detach()), dtype=torch.long)
-        self.edge_idx_val = torch.tensor(np.transpose(self.pos_edges_l_static_val.clone().detach()), dtype=torch.long)
+        self.edge_idx_train = torch.tensor(np.transpose(self.pos_edges_l_static_train), dtype=torch.long)
+        self.edge_idx_test = torch.tensor(np.transpose(self.pos_edges_l_static_test), dtype=torch.long)
+        self.edge_idx_val = torch.tensor(np.transpose(self.pos_edges_l_static_val), dtype=torch.long)
         
+        self.pos_edges_l_static_train, self.neg_edges_l_static_train  = torch.tensor(self.pos_edges_l_static_train), torch.tensor(self.neg_edges_l_static_train)
+        self.pos_edges_l_static_test, self.neg_edges_l_static_test  = torch.tensor(self.pos_edges_l_static_test), torch.tensor(self.neg_edges_l_static_test)
+        self.pos_edges_l_static_val, self.neg_edges_l_static_val  = torch.tensor(self.pos_edges_l_static_val), torch.tensor(self.neg_edges_l_static_val)
+
+
 
     def prepare_edge_list(self):
         edge_list = self.mask_edges_det()
