@@ -6,10 +6,7 @@ MODEL:
   encoder: "linear"
 
 DATASET:
-  dataset: "cora"
-  
-LOSS:
-  loss: 'BCEWithLogitsLoss'
+  dataset: "enron10"
 
 TRAIN:
   max_epochs: 100
@@ -20,10 +17,12 @@ TRAIN:
 
 ATTACK:
   method: "random"
-  ptb_rate: 0.5
+  ptb_rate: 0.2
+  attack_data_path: "attack_data"
+  new_attack: True
     
 TASK_SPECIFIC:
   GEOMETRIC:
-    num_features: 1433
+    num_features: 184
 
   

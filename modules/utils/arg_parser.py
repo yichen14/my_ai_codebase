@@ -21,12 +21,12 @@ def parse_args():
     parser.add_argument('--seed', type=int, default=123,
                         help='Random seed.')
 
-    parser.add_argument('--data_name', nargs='?', default='fb',
+    parser.add_argument('--data_name', nargs='?', default=None,
                         help='Choose a dataset from {dblp, enron10, fb}')
     parser.add_argument('--data_dir', nargs='?', default=None,
                         help='Input data path.')
     
-    parser.add_argument('--model_name', type=str, default="VGRNN",
+    parser.add_argument('--model_name', type=str, default=None,
                         help='Model name')                    
 
     parser.add_argument('--test_time_step', type=int, default=None, help='number of test time steps')

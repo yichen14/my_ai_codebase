@@ -6,7 +6,7 @@ MODEL:
   model: "VGRNN"
 
 DATASET:
-  dataset: "fb"
+  dataset: "enron10"
   TEMPORAL:
     use_feat: False
     test_len: 3
