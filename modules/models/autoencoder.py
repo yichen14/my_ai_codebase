@@ -87,7 +87,6 @@ class GAE(torch.nn.Module):
                 against. If not given, uses negative sampling to calculate
                 negative edges. (default: :obj:`None`)
         """
-
         pos_loss = -torch.log(
             self.decoder(z, pos_edge_index, sigmoid=True) + EPS).mean()
 

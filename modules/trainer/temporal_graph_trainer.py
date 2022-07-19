@@ -5,6 +5,7 @@ import time
 from torch.autograd import Variable
 from tqdm import tqdm
 import logging
+import torch.nn as nn
 
 class temp_graph_trainer(base_trainer):
     def __init__(self, cfg, model, criterion, dataset_module, optimizer, device) -> None:
@@ -35,20 +36,24 @@ class temp_graph_trainer(base_trainer):
         start_time = time.time()
 
         for epoch in pbar:
+            self.model.train()
             self.optimizer.zero_grad()
             
             kld_loss, nll_loss, _, _, hidden_st = self.model(x_in[train_start:train_end]
                                                 , edge_idx_list[train_start:train_end]
                                                 , adj_orig_dense_list[train_start:train_end])
-            loss = kld_loss + nll_loss
+            # loss = kld_loss + nll_loss
+            loss = nll_loss + kld_loss
+            nn.utils.clip_grad_norm_(self.model.parameters(), 10)
             loss.backward()
             self.optimizer.step()
+            
             if epoch % self.log_epoch == 0:
         
                 self.inference(x_in[train_end:seq_end], edge_idx_list[train_end:seq_end], adj_orig_dense_list[train_end:seq_end], 
                             hidden_st, pos_edges_l[train_end:seq_end], neg_edges_l[train_end:seq_end])
-                pbar.set_description('Epoch {}/{}, Loss {:.3f}, Test AUC {:.3f}, Test AP {:.3f}, Time {:.1f}s'.format(epoch, self.max_epochs, loss.item(),self.cal_metric.test_metrics["AUC"], 
-                    self.cal_metric.test_metrics["AP"], time.time() - start_time))
+                pbar.set_description('Epoch {}/{}, Loss {:.3f}, Test AUC {:.3f}, Test AP {:.3f}, Val AUC {:.3f}, Val AP {:.3f}, Time {:.1f}s'.format(epoch, self.max_epochs, loss.item(),self.cal_metric.test_metrics["AUC"], 
+                    self.cal_metric.test_metrics["AP"], self.cal_metric.val_metrics["AUC"], self.cal_metric.val_metrics["AP"], time.time() - start_time))
 
         logging.info("Best performance: Test AUC {:.3f}, Test AP {:.3f}, Val AUC {:.3f}, Val AP {:.3f}".format(
                 self.cal_metric.best_test_metrics["AUC"], self.cal_metric.best_test_metrics["AP"], self.cal_metric.best_val_metrics["AUC"], self.cal_metric.best_val_metrics["AP"]))
@@ -57,6 +62,7 @@ class temp_graph_trainer(base_trainer):
 
     @torch.no_grad()
     def inference(self, x_in, edge_idx_list, adj_orig_dense_list, hidden_st, pos_edges_l, neg_edges_l):
+        self.model.eval()
         _, _, enc_means, pri_means, _ = self.model(x_in
                                 , edge_idx_list
                                 , adj_orig_dense_list

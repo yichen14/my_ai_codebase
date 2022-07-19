@@ -13,7 +13,7 @@ def random_attack_temporal(cfg, adj_matrix_lst, device):
         perform a random attack on data
         Args:
             cfg - config object to get ptb_rate, test_len, and attack_data_path.
-            adj_matrix_lst(scipy.sparse.csr_matrix) – Original (unperturbed) adjacency matrix.
+            adj_matrix_lst(scipy.sparse.csr_matrix) - Original (unperturbed) adjacency matrix.
         Return:
             attacked_csr_lst
     """
