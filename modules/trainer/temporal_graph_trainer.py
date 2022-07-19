@@ -40,11 +40,9 @@ class temp_graph_trainer(base_trainer):
             kld_loss, nll_loss, _, _, hidden_st = self.model(x_in[train_start:train_end]
                                                 , edge_idx_list[train_start:train_end]
                                                 , adj_orig_dense_list[train_start:train_end])
-            # loss = kld_loss + nll_loss
-            loss = nll_loss
+            loss = kld_loss + nll_loss
             loss.backward()
             self.optimizer.step()
-
             if epoch % self.log_epoch == 0:
         
                 self.inference(x_in[train_end:seq_end], edge_idx_list[train_end:seq_end], adj_orig_dense_list[train_end:seq_end], 

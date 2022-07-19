@@ -1,11 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
-#importing libraries
-
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -18,6 +10,7 @@ import torch.utils
 import torch.utils.data
 from torchvision import datasets, transforms
 from torch.autograd import Variable
+import torch.nn.functional as F
 import matplotlib.pyplot as plt 
 from scipy.ndimage import rotate
 from torch.distributions.uniform import Uniform
@@ -41,7 +34,6 @@ import inspect
 from sklearn.metrics import roc_auc_score
 from sklearn.metrics import average_precision_score
 import copy
-import pickle
 from torch_geometric.nn import GCNConv
 
 def uniform(size, tensor):
@@ -486,9 +478,9 @@ class VGRNN(nn.Module):
             prior_std_t_sl = prior_std_t[0:nnodes, :]
             dec_t_sl = dec_t[0:nnodes, 0:nnodes]
             
-            #computing losses
-#             kld_loss += self._kld_gauss_zu(enc_mean_t, enc_std_t)
-            kld_loss += self._kld_gauss(enc_mean_t_sl, enc_std_t_sl, prior_mean_t_sl, prior_std_t_sl)
+            # computing losses
+            kld_loss += self._kld_gauss_zu(enc_mean_t, enc_std_t)
+            # kld_loss += self._kld_gauss(enc_mean_t_sl, enc_std_t_sl, prior_mean_t_sl, prior_std_t_sl)
             nll_loss += self._nll_bernoulli(dec_t_sl, adj_orig_dense_list[t].to(dec_t_sl.device))
             
             all_enc_std.append(enc_std_t_sl)
@@ -518,14 +510,14 @@ class VGRNN(nn.Module):
     
     def _kld_gauss(self, mean_1, std_1, mean_2, std_2):
         num_nodes = mean_1.size()[0]
-        kld_element =  (2 * torch.log(std_2 + self.eps) - 2 * torch.log(std_1 + self.eps) +
+        kld_element =  (2 * torch.log(F.relu(std_2) + self.eps) - 2 * torch.log(F.relu(std_1) + self.eps) +
                         (torch.pow(std_1 + self.eps ,2) + torch.pow(mean_1 - mean_2, 2)) / 
                         torch.pow(std_2 + self.eps ,2) - 1)
-        return (0.5 / num_nodes) * torch.mean(torch.sum(kld_element, dim=1), dim=0)
+        return (-0.5 / num_nodes) * torch.mean(torch.sum(kld_element, dim=1), dim=0)
     
     def _kld_gauss_zu(self, mean_in, std_in):
         num_nodes = mean_in.size()[0]
-        std_log = torch.log(std_in + self.eps)
+        std_log = torch.log(F.relu(std_in) + self.eps)
         kld_element =  torch.mean(torch.sum(1 + 2 * std_log - mean_in.pow(2) -
                                             torch.pow(torch.exp(std_log), 2), 1))
         return (-0.5 / num_nodes) * kld_element
@@ -541,98 +533,3 @@ class VGRNN(nn.Module):
                                                           , reduction='none')
         nll_loss = -1 * norm * torch.mean(nll_loss_mat, dim=[0,1])
         return - nll_loss
-    
-
-
-# In[11]:
-
-
-# hyperparameters
-
-# h_dim = 32
-# z_dim = 16
-# n_layers =  1
-# clip = 10
-# learning_rate = 1e-2
-# seq_len = len(train_edges_l)
-# num_nodes = adj_orig_dense_list[seq_len-1].shape[0]
-# x_dim = num_nodes
-# eps = 1e-10
-# conv_type='GCN'
-
-
-# # In[12]:
-
-
-# # creating input tensors
-
-# x_in_list = []
-# for i in range(0, seq_len):
-#     x_temp = torch.tensor(np.eye(num_nodes).astype(np.float32))
-#     x_in_list.append(torch.tensor(x_temp))
-
-# x_in = Variable(torch.stack(x_in_list))
-
-
-# # In[13]:
-
-
-# # building model
-
-# model = VGRNN(x_dim, h_dim, z_dim, n_layers, eps, conv=conv_type, bias=True)
-# optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-
-
-# In[14]:
-
-
-# training
-
-# seq_start = 0
-# seq_end = seq_len - 3
-# tst_after = 0
-
-# for k in range(1000):
-#     optimizer.zero_grad()
-#     start_time = time.time()
-#     kld_loss, nll_loss, _, _, hidden_st = model(x_in[seq_start:seq_end]
-#                                                 , edge_idx_list[seq_start:seq_end]
-#                                                 , adj_orig_dense_list[seq_start:seq_end])
-#     loss = kld_loss + nll_loss
-#     loss.backward()
-#     optimizer.step()
-    
-#     nn.utils.clip_grad_norm(model.parameters(), clip)
-    
-#     if k>tst_after:
-#         _, _, enc_means, pri_means, _ = model(x_in[seq_end:seq_len]
-#                                               , edge_idx_list[seq_end:seq_len]
-#                                               , adj_orig_dense_list[seq_end:seq_len]
-#                                               , hidden_st)
-        
-#         auc_scores_prd, ap_scores_prd = get_roc_scores(pos_edges_l[seq_end:seq_len]
-#                                                         , false_edges_l[seq_end:seq_len]
-#                                                         , adj_orig_dense_list[seq_end:seq_len]
-#                                                         , pri_means)
-        
-#         auc_scores_prd_new, ap_scores_prd_new = get_roc_scores(pos_edges_l_n[seq_end:seq_len]
-#                                                                 , false_edges_l_n[seq_end:seq_len]
-#                                                                 , adj_orig_dense_list[seq_end:seq_len]
-#                                                                 , pri_means)
-        
-    
-#     print('epoch: ', k)
-#     print('kld_loss =', kld_loss.mean().item())
-#     print('nll_loss =', nll_loss.mean().item())
-#     print('loss =', loss.mean().item())
-#     if k>tst_after:
-#         print('----------------------------------')
-#         print('Link Prediction')
-#         print('link_prd_auc_mean', np.mean(np.array(auc_scores_prd)))
-#         print('link_prd_ap_mean', np.mean(np.array(ap_scores_prd)))
-#         print('----------------------------------')
-#         print('New Link Prediction')
-#         print('new_link_prd_auc_mean', np.mean(np.array(auc_scores_prd_new)))
-#         print('new_link_prd_ap_mean', np.mean(np.array(ap_scores_prd_new)))
-#         print('----------------------------------')
-#     print('----------------------------------')
