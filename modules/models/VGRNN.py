@@ -9,6 +9,7 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+from locale import normalize
 
 import math
 import numpy as np
@@ -272,7 +273,54 @@ class GINConv(torch.nn.Module):
     def __repr__(self):
         return '{}(nn={})'.format(self.__class__.__name__, self.nn)
 
+# class GCNConv(MessagePassing):
+#     def __init__(self, in_channels, out_channels, act=F.relu, improved=True, bias=False):
+#         super(GCNConv, self).__init__()
 
+#         self.in_channels = in_channels
+#         self.out_channels = out_channels
+#         self.improved = improved
+#         self.act = act
+
+#         self.weight = Parameter(torch.Tensor(in_channels, out_channels))
+
+#         if bias:
+#             self.bias = Parameter(torch.Tensor(out_channels))
+#         else:
+#             self.register_parameter('bias', None)
+
+#         self.reset_parameters()
+
+#     def reset_parameters(self):
+#         glorot(self.weight)
+#         zeros(self.bias)
+
+#     def forward(self, x, edge_index, edge_weight=None):
+#         if edge_weight is None:
+#             edge_weight = torch.ones(
+#                 (edge_index.size(1), ), dtype=x.dtype, device=x.device)
+#         edge_weight = edge_weight.view(-1)
+#         assert edge_weight.size(0) == edge_index.size(1)
+
+#         edge_index = add_self_loops(edge_index, num_nodes=x.size(0))
+#         loop_weight = torch.full(
+#             (x.size(0), ),
+#             1 if not self.improved else 2,
+#             dtype=x.dtype,
+#             device=x.device)
+#         edge_weight = torch.cat([edge_weight, loop_weight], dim=0)
+
+#         row, col = edge_index
+#         deg = scatter_add(edge_weight, row, dim=0, dim_size=x.size(0))
+#         deg_inv = deg.pow(-0.5)
+#         deg_inv[deg_inv == float('inf')] = 0
+
+#         norm = deg_inv[row] * edge_weight * deg_inv[col]
+
+#         x = torch.matmul(x, self.weight)
+#         out = self.propagate('add', edge_index, x=x, norm=norm)
+#         return self.act(out)
+        
 class graph_gru_sage(nn.Module):
     def __init__(self, input_size, hidden_size, n_layer, bias=True):
         super(graph_gru_sage, self).__init__()
@@ -338,36 +386,38 @@ class graph_gru_gcn(nn.Module):
         self.weight_hr = []
         self.weight_xh = []
         self.weight_hh = []
+
+        self.act = F.relu
         
         for i in range(self.n_layer):
             if i==0:
-                self.weight_xz.append(GCNConv(input_size, hidden_size).to(device))
-                self.weight_hz.append(GCNConv(hidden_size, hidden_size).to(device))
-                self.weight_xr.append(GCNConv(input_size, hidden_size).to(device))
-                self.weight_hr.append(GCNConv(hidden_size, hidden_size).to(device))
-                self.weight_xh.append(GCNConv(input_size, hidden_size).to(device))
-                self.weight_hh.append(GCNConv(hidden_size, hidden_size).to(device))
+                self.weight_xz.append(GCNConv(input_size, hidden_size, improved=True, bias=False).to(device))
+                self.weight_hz.append(GCNConv(hidden_size, hidden_size, improved=True, bias=False).to(device))
+                self.weight_xr.append(GCNConv(input_size, hidden_size, improved=True, bias=False).to(device))
+                self.weight_hr.append(GCNConv(hidden_size, hidden_size, improved=True, bias=False).to(device))
+                self.weight_xh.append(GCNConv(input_size, hidden_size, improved=True, bias=False).to(device))
+                self.weight_hh.append(GCNConv(hidden_size, hidden_size, improved=True, bias=False).to(device))
             else:
-                self.weight_xz.append(GCNConv(hidden_size, hidden_size).to(device))
-                self.weight_hz.append(GCNConv(hidden_size, hidden_size).to(device))
-                self.weight_xr.append(GCNConv(hidden_size, hidden_size).to(device))
-                self.weight_hr.append(GCNConv(hidden_size, hidden_size).to(device))
-                self.weight_xh.append(GCNConv(hidden_size, hidden_size).to(device))
-                self.weight_hh.append(GCNConv(hidden_size, hidden_size).to(device))
+                self.weight_xz.append(GCNConv(hidden_size, hidden_size, improved=True, bias=False).to(device))
+                self.weight_hz.append(GCNConv(hidden_size, hidden_size, improved=True, bias=False).to(device))
+                self.weight_xr.append(GCNConv(hidden_size, hidden_size, improved=True, bias=False).to(device))
+                self.weight_hr.append(GCNConv(hidden_size, hidden_size, improved=True, bias=False).to(device))
+                self.weight_xh.append(GCNConv(hidden_size, hidden_size, improved=True, bias=False).to(device))
+                self.weight_hh.append(GCNConv(hidden_size, hidden_size, improved=True, bias=False).to(device))
     
     def forward(self, inp, edgidx, h):
         h_out = torch.zeros(h.size()).to(h.device)
         for i in range(self.n_layer):
             if i==0:
-                z_g = torch.sigmoid(self.weight_xz[i](inp, edgidx) + self.weight_hz[i](h[i], edgidx))
-                r_g = torch.sigmoid(self.weight_xr[i](inp, edgidx) + self.weight_hr[i](h[i], edgidx))
-                h_tilde_g = torch.tanh(self.weight_xh[i](inp, edgidx) + self.weight_hh[i](r_g * h[i], edgidx))
+                z_g = torch.sigmoid(self.act(self.weight_xz[i](inp, edgidx)) + self.act(self.weight_hz[i](h[i], edgidx)))
+                r_g = torch.sigmoid(self.act(self.weight_xr[i](inp, edgidx)) + self.act(self.weight_hr[i](h[i], edgidx)))
+                h_tilde_g = torch.tanh(self.act(self.weight_xh[i](inp, edgidx)) + self.act(self.weight_hh[i](r_g * h[i], edgidx)))
                 h_out[i] = z_g * h[i] + (1 - z_g) * h_tilde_g
         #         out = self.decoder(h_t.view(1,-1))
             else:
-                z_g = torch.sigmoid(self.weight_xz[i](h_out[i-1], edgidx) + self.weight_hz[i](h[i], edgidx))
-                r_g = torch.sigmoid(self.weight_xr[i](h_out[i-1], edgidx) + self.weight_hr[i](h[i], edgidx))
-                h_tilde_g = torch.tanh(self.weight_xh[i](h_out[i-1], edgidx) + self.weight_hh[i](r_g * h[i], edgidx))
+                z_g = torch.sigmoid(self.act(self.weight_xz[i](h_out[i-1], edgidx)) + self.act(self.weight_hz[i](h[i], edgidx)))
+                r_g = torch.sigmoid(self.act(self.weight_xr[i](h_out[i-1], edgidx)) + self.act(self.weight_hr[i](h[i], edgidx)))
+                h_tilde_g = torch.tanh(self.act(self.weight_xh[i](h_out[i-1], edgidx)) + self.act(self.weight_hh[i](r_g * h[i], edgidx)))
                 h_out[i] = z_g * h[i] + (1 - z_g) * h_tilde_g
         #         out = self.decoder(h_t.view(1,-1))
         
@@ -403,9 +453,9 @@ class VGRNN(nn.Module):
             self.phi_x = nn.Sequential(nn.Linear(x_dim, h_dim), nn.ReLU())
             self.phi_z = nn.Sequential(nn.Linear(z_dim, h_dim), nn.ReLU())
             
-            self.enc = GCNConv(h_dim + h_dim, h_dim)            
-            self.enc_mean = GCNConv(h_dim, z_dim)
-            self.enc_std = GCNConv(h_dim, z_dim)
+            self.enc = GCNConv(h_dim + h_dim, h_dim, improved=True, bias=False)            
+            self.enc_mean = GCNConv(h_dim, z_dim, improved=True, bias=False)
+            self.enc_std = GCNConv(h_dim, z_dim, improved=True, bias=False)
             
             self.prior = nn.Sequential(nn.Linear(h_dim, h_dim), nn.ReLU())
             self.prior_mean = nn.Sequential(nn.Linear(h_dim, z_dim))
@@ -460,9 +510,9 @@ class VGRNN(nn.Module):
             
             #encoder
             a = torch.cat([phi_x_t, h[-1]], 1)
-            enc_t = self.enc(torch.cat([phi_x_t, h[-1]], 1), edge_idx_list[t])
-            enc_mean_t = self.enc_mean(enc_t, edge_idx_list[t])
-            enc_std_t = self.enc_std(enc_t, edge_idx_list[t])
+            enc_t = F.relu(self.enc(torch.cat([phi_x_t, h[-1]], 1), edge_idx_list[t]))
+            enc_mean_t = F.relu(self.enc_mean(enc_t, edge_idx_list[t]))
+            enc_std_t = F.relu(self.enc_std(enc_t, edge_idx_list[t]))
             
             #prior
             prior_t = self.prior(h[-1])
