@@ -64,7 +64,7 @@ class temporal_graph(torch_geometric.data.Dataset):
         with open(adj_time_list_path, 'rb') as handle:
             self.adj_time_list = pickle.load(handle,encoding="latin1")
 
-        # self.adj_orig_dense_list, self.adj_time_list = to_undirect(self.adj_time_list) # to undirect
+        self.adj_orig_dense_list, self.adj_time_list = to_undirect(self.adj_time_list) # to undirect
 
         if attack_flag and attack_func is not None:
             self.adj_time_list = attack_func(self.cfg, self.adj_time_list, self.device)

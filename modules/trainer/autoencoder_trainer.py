@@ -9,6 +9,7 @@ from utils.metrics import Evaluation
 from tqdm import tqdm
 import logging
 import time
+from torch_geometric.utils import negative_sampling
 
 class autoencoder_trainer(base_trainer):
     def __init__(self, cfg, model, criterion, dataset_module, optimizer, device) -> None:
@@ -31,11 +32,13 @@ class autoencoder_trainer(base_trainer):
             loss.backward()
             self.optimizer.step()      
             if epoch % self.log_epoch == 0:
+                neg_edge_index_val = negative_sampling(self.static_data.pos_edges_l_static_val, z.size(0))
+                neg_edge_index_test = negative_sampling(self.static_data.pos_edges_l_static_test, z.size(0))
                 self.inference([self.static_data.feat_static_val.to(self.device), self.static_data.feat_static_test.to(self.device)],
                         [self.static_data.edge_idx_train.to(self.device), self.static_data.edge_idx_train.to(self.device)],
                         [self.static_data.adj_dense_merge_val, self.static_data.adj_dense_merge_test],
                         [self.static_data.pos_edges_l_static_val.to(self.device).T, self.static_data.pos_edges_l_static_test.to(self.device).T],
-                        [self.static_data.neg_edges_l_static_val.to(self.device).T, self.static_data.neg_edges_l_static_test.to(self.device).T])
+                        [neg_edge_index_val.to(self.device).T, neg_edge_index_test.to(self.device).T])
                 pbar.set_description('Epoch {}/{}, Loss {:.3f}, Test AUC {:.3f}, Test AP {:.3f}, Time {:.1f}s'.format(epoch, self.max_epochs, loss.item(),self.cal_metric.test_metrics["AUC"], 
                     self.cal_metric.test_metrics["AP"], time.time() - start_time))
         logging.info("Best performance: Test AUC {:.3f}, Test AP {:.3f}, Val AUC {:.3f}, Val AP {:.3f}".format(
