@@ -32,7 +32,7 @@ class autoencoder_trainer(base_trainer):
             self.optimizer.step()      
             if epoch % self.log_epoch == 0:
                 self.inference([self.static_data.feat_static_val.to(self.device), self.static_data.feat_static_test.to(self.device)],
-                        [self.static_data.edge_idx_val.to(self.device), self.static_data.edge_idx_test.to(self.device)],
+                        [self.static_data.edge_idx_train.to(self.device), self.static_data.edge_idx_train.to(self.device)],
                         [self.static_data.adj_dense_merge_val, self.static_data.adj_dense_merge_test],
                         [self.static_data.pos_edges_l_static_val.to(self.device).T, self.static_data.pos_edges_l_static_test.to(self.device).T],
                         [self.static_data.neg_edges_l_static_val.to(self.device).T, self.static_data.neg_edges_l_static_test.to(self.device).T])
