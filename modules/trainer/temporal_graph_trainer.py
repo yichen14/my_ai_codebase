@@ -49,8 +49,11 @@ class temp_graph_trainer(base_trainer):
             self.optimizer.step()
             
             if epoch % self.log_epoch == 0:
-        
-                self.inference(x_in[train_end:seq_end], edge_idx_list[train_end:seq_end], adj_orig_dense_list[train_end:seq_end], 
+                # prepare testing input:
+                edge_list_testing = [edge_idx_list[train_end] for i in range(test_len)]
+                x_in_testing = torch.stack([x_in[train_end] for i in range(test_len)])
+                
+                self.inference(x_in_testing, edge_list_testing, adj_orig_dense_list[train_end:seq_end], 
                             hidden_st, pos_edges_l[train_end:seq_end], neg_edges_l[train_end:seq_end])
                 pbar.set_description('Epoch {}/{}, Loss {:.3f}, Test AUC {:.3f}, Test AP {:.3f}, Val AUC {:.3f}, Val AP {:.3f}, Time {:.1f}s'.format(epoch, self.max_epochs, loss.item(),self.cal_metric.test_metrics["AUC"], 
                     self.cal_metric.test_metrics["AP"], self.cal_metric.val_metrics["AUC"], self.cal_metric.val_metrics["AP"], time.time() - start_time))
