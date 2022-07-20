@@ -205,8 +205,8 @@ _C.TASK_SPECIFIC.GEOMETRIC.emb_dim = 128
 # LOGGING Settings
 #######################
 _C.LOGGING = CN()
-_C.LOGGING.log_file = None
-_C.LOGGING.model_file = None
+_C.LOGGING.log_file = "none"
+_C.LOGGING.model_file = "none"
 # ---------------------------
 # | End Default Config
 # ---------------------------

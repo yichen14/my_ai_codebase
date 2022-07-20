@@ -28,9 +28,12 @@ def setup(cfg, args):
     if cfg.MODEL.encoder != "none":
         model_cls, encoder_cls = models.dispatcher(cfg)
         model = model_cls(encoder_cls(cfg)).to(device)
-    else:
+    elif cfg.MODEL.model == "VGRNN":
         model_cls = models.dispatcher(cfg)
         model = model_cls(data.feat_dim, device).to(device)
+    elif cfg.MODEL.model in ["EGCN_H", "EGCN_O"]:
+        model_cls = models.dispatcher(cfg)
+        model = model_cls(data.feat_dim, torch.nn.RReLU(), device).to(device)
 
     # set up optimizer
     if cfg.TRAIN.OPTIMIZER.type == "adadelta":

@@ -20,18 +20,12 @@ def dispatcher(cfg):
         return GCN_cls
 
     # Temporal Network 
-    if model_name == "EGCNH":
-        from .RecurrentGCN import RecurrentGCN_EGCNH as RGCN_cls
-        return RGCN_cls
-    if model_name == "EGCNO":
-        from .RecurrentGCN import RecurrentGCN_EGCNO as RGCN_cls
-        return RGCN_cls
-    if model_name == "DCRNN":
-        from .RecurrentGCN import RecurrentGCN_DCRNN as RGCN_cls
-        return RGCN_cls
-    if model_name == "GCLSTM":
-        from .RecurrentGCN import RecurrentGCN_GCLSTM as RGCN_cls
-        return RGCN_cls
     if model_name == "VGRNN":
         from .VGRNN import VGRNN as RGCN_cls
+        return RGCN_cls
+    if model_name == "EGCN_H":
+        from .evo_gcn import LP_EGCN_h as RGCN_cls
+        return RGCN_cls
+    if model_name == "EGCN_O":
+        from .evo_gcn import LP_EGCN_o as RGCN_cls
         return RGCN_cls

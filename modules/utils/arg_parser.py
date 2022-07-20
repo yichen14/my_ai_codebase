@@ -45,7 +45,7 @@ def parse_args():
     parser.add_argument('--max_epoch', type=int, default=None,
                         help='Number of epoch.')
     
-    parser.add_argument('--ptb_rate', type=float, default=0.5,
+    parser.add_argument('--ptb_rate', type=float, default=None,
                         help='attack rate.')
     parser.add_argument('--attack_method', type=str, default="random",
                         help='attack_func.')

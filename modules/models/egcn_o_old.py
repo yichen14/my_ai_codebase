@@ -8,7 +8,7 @@ import math
 class EGCN(torch.nn.Module):
     def __init__(self, args, activation, device='cpu', skipfeats=False):
         super().__init__()
-        GRCU_args = Namespace({})
+        GRCU_args = u.Namespace({})
 
         feats = [args.feats_per_node,
                  args.layer_1_feats,
@@ -18,7 +18,7 @@ class EGCN(torch.nn.Module):
         self.GRCU_layers = []
         self._parameters = nn.ParameterList()
         for i in range(1,len(feats)):
-            GRCU_args = Namespace({'in_feats' : feats[i-1],
+            GRCU_args = u.Namespace({'in_feats' : feats[i-1],
                                      'out_feats': feats[i],
                                      'activation': activation})
 
@@ -30,15 +30,15 @@ class EGCN(torch.nn.Module):
     def parameters(self):
         return self._parameters
 
-    def forward(self,A_list, Nodes_list,nodes_mask_list):
+    def forward(self, A_list, Nodes_list, edge_feats, nodes_mask_list):
         node_feats= Nodes_list[-1]
 
         for unit in self.GRCU_layers:
-            Nodes_list = unit(A_list,Nodes_list,nodes_mask_list)
+            Nodes_list = unit(A_list,Nodes_list)#,nodes_mask_list)
 
         out = Nodes_list[-1]
         if self.skipfeats:
-            out = torch.cat((out,node_feats), dim=1)   # use node_feats.to_dense() if 2hot encoded input 
+            out = torch.cat((out,node_feats), dim=1)   # use node_feats.to_dense() if 2hot encoded input
         return out
 
 
@@ -46,7 +46,7 @@ class GRCU(torch.nn.Module):
     def __init__(self,args):
         super().__init__()
         self.args = args
-        cell_args = Namespace({})
+        cell_args = u.Namespace({})
         cell_args.rows = args.in_feats
         cell_args.cols = args.out_feats
 
@@ -61,13 +61,13 @@ class GRCU(torch.nn.Module):
         stdv = 1. / math.sqrt(t.size(1))
         t.data.uniform_(-stdv,stdv)
 
-    def forward(self,A_list,node_embs_list,mask_list):
+    def forward(self,A_list,node_embs_list):#,mask_list):
         GCN_weights = self.GCN_init_weights
         out_seq = []
         for t,Ahat in enumerate(A_list):
             node_embs = node_embs_list[t]
             #first evolve the weights from the initial and use the new weights with the node_embs
-            GCN_weights = self.evolve_weights(GCN_weights,node_embs,mask_list[t])
+            GCN_weights = self.evolve_weights(GCN_weights)#,node_embs,mask_list[t])
             node_embs = self.activation(Ahat.matmul(node_embs.matmul(GCN_weights)))
 
             out_seq.append(node_embs)
@@ -89,12 +89,13 @@ class mat_GRU_cell(torch.nn.Module):
         self.htilda = mat_GRU_gate(args.rows,
                                    args.cols,
                                    torch.nn.Tanh())
-        
+
         self.choose_topk = TopK(feats = args.rows,
                                 k = args.cols)
 
-    def forward(self,prev_Q,prev_Z,mask):
-        z_topk = self.choose_topk(prev_Z,mask)
+    def forward(self,prev_Q):#,prev_Z,mask):
+        # z_topk = self.choose_topk(prev_Z,mask)
+        z_topk = prev_Q
 
         update = self.update(z_topk,prev_Q)
         reset = self.reset(z_topk,prev_Q)
@@ -106,7 +107,7 @@ class mat_GRU_cell(torch.nn.Module):
 
         return new_Q
 
-        
+
 
 class mat_GRU_gate(torch.nn.Module):
     def __init__(self,rows,cols,activation):
@@ -138,7 +139,7 @@ class TopK(torch.nn.Module):
         super().__init__()
         self.scorer = Parameter(torch.Tensor(feats,1))
         self.reset_param(self.scorer)
-        
+
         self.k = k
 
     def reset_param(self,t):
@@ -154,8 +155,8 @@ class TopK(torch.nn.Module):
         topk_indices = topk_indices[vals > -float("Inf")]
 
         if topk_indices.size(0) < self.k:
-            topk_indices = pad_with_last_val(topk_indices,self.k)
-            
+            topk_indices = u.pad_with_last_val(topk_indices,self.k)
+
         tanh = torch.nn.Tanh()
 
         if isinstance(node_embs, torch.sparse.FloatTensor) or \
@@ -166,18 +167,3 @@ class TopK(torch.nn.Module):
 
         #we need to transpose the output
         return out.t()
-
-class Namespace(object):
-    '''
-    helps referencing object in a dictionary as dict.key instead of dict['key']
-    '''
-    def __init__(self, adict):
-        self.__dict__.update(adict)
-
-def pad_with_last_val(vect,k):
-    device = 'cuda' if vect.is_cuda else 'cpu'
-    pad = torch.ones(k - vect.size(0),
-                         dtype=torch.long,
-                         device = device) * vect[-1]
-    vect = torch.cat([vect,pad])
-    return vect
