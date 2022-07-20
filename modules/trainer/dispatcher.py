@@ -1,10 +1,16 @@
 
 def dispatcher(cfg):
     task_name = cfg.task
+    model_name = cfg.MODEL.model 
+
     assert task_name != "none"
     if task_name == "static_link_prediction":
         from .autoencoder_trainer import autoencoder_trainer as autoencoder_trainer_fn
         return autoencoder_trainer_fn
     if task_name == "temporal_link_prediction":
-        from .temporal_graph_trainer import temp_graph_trainer as temp_graph_trainer_fn
-        return temp_graph_trainer_fn
+        if model_name in ["EGCNO", "EGCNH"]:
+            from .ecgn_trainer import egcn_trainer as egcn_trainer_fn
+            return egcn_trainer_fn
+        else:
+            from .temporal_graph_trainer import temp_graph_trainer as temp_graph_trainer_fn
+            return temp_graph_trainer_fn

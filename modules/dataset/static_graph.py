@@ -3,18 +3,12 @@ import torch_geometric
 from torch_geometric.data import Data
 import torch_geometric.transforms as T
 import torch
+import temporal_graph
 
-# Warning: Still working on this class...
-# Documentation for create dataset class: https://pytorch-geometric.readthedocs.io/en/latest/notes/create_dataset.html
-# Documentation for create Data object: 
-#   - https://pytorch-geometric.readthedocs.io/en/latest/modules/data.html?highlight=Data#torch_geometric.data.Data
-#   - https://pytorch-geometric.readthedocs.io/en/latest/notes/introduction.html#data-handling-of-graphs
-# Example for create own dataset: https://github.com/Orbifold/pyg-link-prediction/blob/main/pokec/Pokec.py
-# TODO: We should first convert our data(pure adjacency matrix) to the correct data format for Pyg Data object, then complete this static_graph class
-
-class static_graph(torch_geometric.data.Dataset):
-    def __init__(self, root, transform=None, pre_transform=None, pre_filter=None):
-        super().__init__(root, transform, pre_transform, pre_filter)
+class static_graph(temporal_graph):
+    
+    def __init__(self, cfg, device):
+        super().__init__(cfg, device)
         self.raw_dir = '/home/ruijiew2/Documents/RandomGraph/data/static/'
         DATA_NAME = ['bill', 'election', 'timme']
         self.data_dict = {}

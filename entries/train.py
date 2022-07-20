@@ -45,6 +45,7 @@ def setup(cfg, args):
     elif cfg.TRAIN.OPTIMIZER.type == "ADAM":
         optimizer = optim.Adam(model.parameters(), lr = cfg.TRAIN.initial_lr, betas = (0.9, 0.999),
                                 weight_decay = cfg.TRAIN.OPTIMIZER.weight_decay)
+        # optimizer = optim.Adam(model.parameters(), lr = cfg.TRAIN.initial_lr)                     
     else:
         raise NotImplementedError("Got unsupported optimizer: {}".format(cfg.TRAIN.OPTIMIZER.type))
     # set up loss function (note that we do not need to give criterion to a graph autoencoder)
@@ -59,7 +60,6 @@ def main():
     args = parse_args()
     test_auc, test_ap = [], []
     for i in range(args.runs):
-        args.seed += 5
         update_config_from_yaml(cfg, args)
         update_cfg_from_args(cfg, args)
         logging.basicConfig(level=logging.INFO, handlers=[logging.FileHandler(cfg.LOGGING.log_file), logging.StreamHandler()])
@@ -76,7 +76,9 @@ def main():
         logging.info("---------------------end training---------------------")
         test_auc.append(test_auc_)
         test_ap.append(test_ap_)
-    
+
+        args.seed += 5
+        
     logging.info("{} runs, Test AUC {:.3f} +- {:.3f}, Test AP {:.3f} +- {:.3f}".format(args.runs, np.mean(test_auc), np.std(test_auc), np.mean(test_ap), np.std(test_ap)))
 
 if __name__ == '__main__':
