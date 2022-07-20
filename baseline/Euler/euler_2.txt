@@ -1,0 +1,42 @@
+enron10
+LR: 0.0200
+===== ptb_rate 0.0000; test_len 3 =====
+pred-auc    93.027303
+pred-ap     93.939113
+new-auc     87.708560
+new-ap      88.314377
+dtype: float64
+pred-auc    0.124571
+pred-ap     0.189646
+new-auc     0.097158
+new-ap      0.450713
+dtype: float64
+
+fb
+LR: 0.0200
+===== ptb_rate 0.0000; test_len 3 =====
+pred-auc    88.971533
+pred-ap     87.558280
+new-auc     87.265122
+new-ap      85.172850
+dtype: float64
+pred-auc    0.107747
+pred-ap     0.165348
+new-auc     0.113480
+new-ap      0.150744
+dtype: float64
+
+dblp
+LR: 0.0200
+===== ptb_rate 0.0000; test_len 3 =====
+pred-auc    85.614029
+pred-ap     88.064170
+new-auc     76.921839
+new-ap      80.094344
+dtype: float64
+pred-auc    0.270487
+pred-ap     0.312316
+new-auc     0.450696
+new-ap      0.265283
+dtype: float64
+

@@ -195,7 +195,7 @@ if __name__ == '__main__':
     )
 
     args = parser.parse_args()
-    outf = 'euler.txt' 
+    outf = 'euler_2.txt' 
 
     for d in ['enron10', 'fb', 'dblp']:
         data = vd.load_vgrnn(d, ptb_rate=args.att, test_len=TEST_TS)

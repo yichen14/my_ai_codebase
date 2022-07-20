@@ -1,0 +1,172 @@
+enron10
+===== LR 0.0100; Using inner prod? True =====
+===== ptb_rate 0.0000; test_len 3 =====
+pred-auc    87.938791
+pred-ap     89.355959
+new-auc     78.315625
+new-ap      80.918372
+dtype: float64
+pred-auc    0.634030
+pred-ap     0.694975
+new-auc     1.347824
+new-ap      0.960925
+dtype: float64
+
+enron10
+===== LR 0.0100; Using inner prod? True =====
+===== ptb_rate 0.1000; test_len 3 =====
+pred-auc    85.021888
+pred-ap     85.768707
+new-auc     74.498438
+new-ap      76.628835
+dtype: float64
+pred-auc    0.630366
+pred-ap     0.392431
+new-auc     1.373395
+new-ap      1.034438
+dtype: float64
+
+enron10
+===== LR 0.0100; Using inner prod? True =====
+===== ptb_rate 0.3000; test_len 3 =====
+pred-auc    84.239654
+pred-ap     83.854844
+new-auc     73.594097
+new-ap      73.240182
+dtype: float64
+pred-auc    1.025968
+pred-ap     1.223750
+new-auc     1.995915
+new-ap      2.042847
+dtype: float64
+
+enron10
+===== LR 0.0100; Using inner prod? True =====
+===== ptb_rate 0.5000; test_len 3 =====
+pred-auc    79.784344
+pred-ap     78.044563
+new-auc     69.139063
+new-ap      68.138772
+dtype: float64
+pred-auc    0.758263
+pred-ap     1.438553
+new-auc     0.963507
+new-ap      1.104823
+dtype: float64
+
+====================================================================
+
+fb
+===== LR 0.0100; Using inner prod? True =====
+===== ptb_rate 0.0000; test_len 3 =====
+pred-auc    77.724180
+pred-ap     76.412769
+new-auc     71.524371
+new-ap      69.646627
+dtype: float64
+pred-auc    0.803232
+pred-ap     1.011208
+new-auc     1.011321
+new-ap      1.450297
+dtype: float64
+
+fb
+===== LR 0.0100; Using inner prod? True =====
+===== ptb_rate 0.1000; test_len 3 =====
+pred-auc    74.138543
+pred-ap     71.792453
+new-auc     67.996631
+new-ap      66.010431
+dtype: float64
+pred-auc    0.842864
+pred-ap     0.903483
+new-auc     1.073771
+new-ap      1.078247
+dtype: float64
+
+fb
+===== LR 0.0100; Using inner prod? True =====
+===== ptb_rate 0.3000; test_len 3 =====
+pred-auc    70.653898
+pred-ap     67.910587
+new-auc     63.450488
+new-ap      60.469848
+dtype: float64
+pred-auc    0.695831
+pred-ap     0.820285
+new-auc     0.792727
+new-ap      0.618547
+dtype: float64
+
+fb
+===== LR 0.0100; Using inner prod? True =====
+===== ptb_rate 0.5000; test_len 3 =====
+pred-auc    70.737391
+pred-ap     67.361379
+new-auc     63.302679
+new-ap      59.243278
+dtype: float64
+pred-auc    0.450742
+pred-ap     0.481532
+new-auc     0.477250
+new-ap      0.518106
+dtype: float64
+
+====================================================================
+
+dblp
+===== LR 0.0100; Using inner prod? True =====
+===== ptb_rate 0.0000; test_len 3 =====
+pred-auc    79.462625
+pred-ap     82.590286
+new-auc     66.360755
+new-ap      69.648964
+dtype: float64
+pred-auc    0.545739
+pred-ap     0.683993
+new-auc     0.816795
+new-ap      0.876610
+dtype: float64
+
+dblp
+===== LR 0.0100; Using inner prod? True =====
+===== ptb_rate 0.1000; test_len 3 =====
+pred-auc    76.695364
+pred-ap     79.587054
+new-auc     63.694276
+new-ap      65.811263
+dtype: float64
+pred-auc    0.539185
+pred-ap     0.650528
+new-auc     0.354206
+new-ap      0.669907
+dtype: float64
+
+dblp
+===== LR 0.0100; Using inner prod? True =====
+===== ptb_rate 0.3000; test_len 3 =====
+pred-auc    75.119146
+pred-ap     76.456451
+new-auc     62.078883
+new-ap      62.777712
+dtype: float64
+pred-auc    0.980360
+pred-ap     1.155863
+new-auc     1.087839
+new-ap      0.989000
+dtype: float64
+
+dblp
+===== LR 0.0100; Using inner prod? True =====
+===== ptb_rate 0.5000; test_len 3 =====
+pred-auc    73.776579
+pred-ap     75.065602
+new-auc     59.457102
+new-ap      59.472571
+dtype: float64
+pred-auc    0.582212
+pred-ap     0.848127
+new-auc     0.824445
+new-ap      1.166269
+dtype: float64
+
