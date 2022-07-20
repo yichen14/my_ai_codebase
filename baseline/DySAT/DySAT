@@ -1,0 +1,61 @@
+enron10
+===== ptb_rate 0.0000; test_len 2 =====
+AUC Mean 90.1719, SD 0.1110
+ AP Mean 87.0068, SD 0.0568 
+
+enron10
+===== ptb_rate 0.1000; test_len 2 =====
+AUC Mean 85.1672, SD 0.3520
+ AP Mean 84.3484, SD 0.5905 
+
+enron10
+===== ptb_rate 0.3000; test_len 2 =====
+AUC Mean 87.8648, SD 0.0451
+ AP Mean 84.1800, SD 0.1209 
+
+enron10
+===== ptb_rate 0.5000; test_len 2 =====
+AUC Mean 84.3828, SD 0.3298
+ AP Mean 83.7126, SD 0.9370 
+
+
+fb
+===== ptb_rate 0.0000; test_len 2 =====
+AUC Mean 90.4097, SD 0.0729
+ AP Mean 90.0122, SD 0.0861 
+
+fb
+===== ptb_rate 0.1000; test_len 2 =====
+AUC Mean 89.4494, SD 0.0349
+ AP Mean 89.0145, SD 0.0493 
+
+fb
+===== ptb_rate 0.3000; test_len 2 =====
+AUC Mean 86.3115, SD 0.1694
+ AP Mean 84.4658, SD 0.3078 
+
+fb
+===== ptb_rate 0.5000; test_len 2 =====
+AUC Mean 84.7119, SD 0.0932
+ AP Mean 85.0221, SD 0.0862 
+
+dblp
+===== ptb_rate 0.0000; test_len 2 =====
+AUC Mean 87.5390, SD 0.7817
+ AP Mean 90.1181, SD 1.0350 
+
+dblp
+===== ptb_rate 0.1000; test_len 2 =====
+AUC Mean 84.9063, SD 2.0947
+ AP Mean 87.8286, SD 1.7515 
+
+dblp
+===== ptb_rate 0.3000; test_len 2 =====
+AUC Mean 83.7051, SD 2.1864
+ AP Mean 87.6610, SD 2.0956 
+
+dblp
+===== ptb_rate 0.5000; test_len 2 =====
+AUC Mean 80.6908, SD 1.7008
+ AP Mean 84.4318, SD 0.3915 
+
