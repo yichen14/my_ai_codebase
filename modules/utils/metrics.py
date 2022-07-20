@@ -1,7 +1,8 @@
 import numpy as np
-
+import torch
 from sklearn.metrics import roc_auc_score
 from sklearn.metrics import average_precision_score
+from scipy.special import expit
 
 class Evaluation():
     def __init__(self, val_len, test_len) -> None:
@@ -35,18 +36,18 @@ class Evaluation():
             preds = []
             pos = []
             for e in edges_pos[i]:
-                preds.append(sigmoid(adj_rec[e[0], e[1]]))
+                preds.append(expit(adj_rec[e[0], e[1]]))
                 pos.append(adj_orig_t[e[0], e[1]])
                 
             preds_neg = []
             neg = []
             for e in edges_neg[i]:
-                preds_neg.append(sigmoid(adj_rec[e[0], e[1]]))
+                preds_neg.append(expit(adj_rec[e[0], e[1]]))
                 neg.append(adj_orig_t[e[0], e[1]])
             
             preds_all = np.hstack([preds, preds_neg])
             labels_all = np.hstack([np.ones(len(preds)), np.zeros(len(preds_neg))])
-
+            # labels_all = np.hstack([pos, neg])
             if i < self.val_len:
                 # validation performance:
                 val_auc_scores.append(roc_auc_score(labels_all, preds_all))

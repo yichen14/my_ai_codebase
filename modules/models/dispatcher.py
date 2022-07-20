@@ -24,7 +24,7 @@ def dispatcher(cfg):
         from .RecurrentGCN import RecurrentGCN_EGCNH as RGCN_cls
         return RGCN_cls
     if model_name == "EGCNO":
-        from .RecurrentGCN import RecurrentGCN_EGCNO as RGCN_cls
+        from .egcn_o import LP_EGCN_o as RGCN_cls
         return RGCN_cls
     if model_name == "DCRNN":
         from .RecurrentGCN import RecurrentGCN_DCRNN as RGCN_cls

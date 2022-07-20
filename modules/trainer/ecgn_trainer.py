@@ -1,86 +1,75 @@
-import torch 
-import torch_geometric
+import torch
 from .base_trainer import base_trainer
-from sklearn.metrics import roc_auc_score
-from utils.metrics import get_roc_scores
-from utils.generators import link_prediction
+from utils.metrics import Evaluation
 import time
 from torch.autograd import Variable
-from torch import nn
-import numpy as np
+from tqdm import tqdm
+import logging
+import torch.nn as nn
+from torch_geometric.utils import negative_sampling
 
 class egcn_trainer(base_trainer):
-    def __init__(self, cfg, model, criterion, dataset_module, optimizer, device):
-        super().__init__(cfg, model, criterion, dataset_module, optimizer, device)
+    def __init__(self, cfg, model, criterion, dataset_module, optimizer, device) -> None:
+        super(egcn_trainer, self).__init__(cfg, model, criterion, dataset_module, optimizer, device)
         self.max_epochs = cfg.TRAIN.max_epochs
         self.log_epoch = cfg.TRAIN.log_epoch
         self.temporal_data = dataset_module
-    
-    def train(self, test_len = 1):
+        self.cal_metric = Evaluation(self.cfg.DATASET.TEMPORAL.val_len, self.cfg.DATASET.TEMPORAL.test_len)
 
+    def train(self):
+        test_len = self.cfg.DATASET.TEMPORAL.test_len
+        
         x_in = self.temporal_data.feat
-        x_in = Variable(torch.stack(x_in)).to(self.device)
+        x_in = torch.stack(x_in).to(self.device)
         edge_idx_list = self.temporal_data.edge_idx_list
         adj_orig_dense_list = self.temporal_data.adj_orig_dense_list
         pos_edges_l, neg_edges_l = self.temporal_data.pos_edges_l, self.temporal_data.neg_edges_l
 
-        seq_start = 0
-        seq_end = self.temporal_data.time_step - test_len
-        seq_len = self.temporal_data.time_step
-
-        print(len(edge_idx_list))
-        print(len(adj_orig_dense_list))
-
+        train_start = 0
+        train_end = self.temporal_data.time_step - test_len
+        seq_end = self.temporal_data.time_step
+        
         for i in range(self.temporal_data.time_step):
+            adj_orig_dense_list[i] = adj_orig_dense_list[i].to(self.device) 
             pos_edges_l[i] = torch.tensor(pos_edges_l[i]).to(self.device)
             neg_edges_l[i] = torch.tensor(neg_edges_l[i]).to(self.device)
-            # adj_orig_dense_list[i] = torch.tensor(adj_orig_dense_list[i]).to(self.device)
-            edge_idx_list[i] = torch.tensor(edge_idx_list[i]).to(self.device)
+            edge_idx_list[i] = edge_idx_list[i].to(self.device)
 
-        for k in range(1, self.max_epochs+1):
+        pbar = tqdm(range(self.max_epochs))
+        start_time = time.time()
+
+        for epoch in pbar:
             self.model.train()
             self.optimizer.zero_grad()
-
-            # Get embedding 
-            zs = self.model(adj_orig_dense_list, x_in)
-
-            p, n, z = link_prediction()
-
             
+            zs = self.model(adj_orig_dense_list[train_start:train_end], x_in[train_start:train_end])
+
+            loss = self.model.loss_fn(edge_idx_list[train_start:train_end-1], neg_edges_l[train_start:train_end-1], zs[:-1])
+
+            loss.backward()
+            self.optimizer.step()
+
+            nn.utils.clip_grad_norm_(self.model.parameters(), 10)
             
-
-            
-
-            print('epoch: ', k)
-            print('kld_loss =', kld_loss.mean().item())
-            print('nll_loss =', nll_loss.mean().item())
-            print('loss =', loss.mean().item())
-
-            if k % self.log_epoch == 0:
-                _, _, enc_means, pri_means, _ = self.model(x_in[seq_end:seq_len]
-                                              , edge_idx_list[seq_end:seq_len]
-                                              , adj_orig_dense_list[seq_end:seq_len]
-                                              , hidden_st)
+            if epoch % self.log_epoch == 0:
         
-                auc_scores_prd, ap_scores_prd = get_roc_scores(pos_edges_l[seq_end:seq_len]
-                                                        , neg_edges_l[seq_end:seq_len]
-                                                        , adj_orig_dense_list[seq_end:seq_len]
-                                                        , pri_means)
-        
-                # auc_scores_prd_new, ap_scores_prd_new = get_roc_scores(pos_edges_l_n[seq_end:seq_len]
-                #                                                 , false_edges_l_n[seq_end:seq_len]
-                #                                                 , adj_orig_dense_list[seq_end:seq_len]
-                #                                                 , pri_means)
-        
-    
-                print('----------------------------------')
-                print('epoch: ', k)
-                print('Link Prediction')
-                print('link_prd_auc_mean', np.mean(np.array(auc_scores_prd)))
-                print('link_prd_ap_mean', np.mean(np.array(ap_scores_prd)))
-                print('----------------------------------')
-                # print('New Link Prediction')
-                # print('new_link_prd_auc_mean', np.mean(np.array(auc_scores_prd_new)))
-                # print('new_link_prd_ap_mean', np.mean(np.array(ap_scores_prd_new)))
-                # print('----------------------------------')
-        print('----------------------------------')
+                self.inference(x_in[train_start:train_end], adj_orig_dense_list[train_start:train_end], adj_orig_dense_list[train_end:seq_end], 
+                             pos_edges_l[train_end:seq_end], neg_edges_l[train_end:seq_end])
+                pbar.set_description('Epoch {}/{}, Loss {:.3f}, Test AUC {:.3f}, Test AP {:.3f}, Val AUC {:.3f}, Val AP {:.3f}, Time {:.1f}s'.format(epoch, self.max_epochs, loss.item(),self.cal_metric.test_metrics["AUC"], 
+                    self.cal_metric.test_metrics["AP"], self.cal_metric.val_metrics["AUC"], self.cal_metric.val_metrics["AP"], time.time() - start_time))
+
+        logging.info("Best performance: Test AUC {:.3f}, Test AP {:.3f}, Val AUC {:.3f}, Val AP {:.3f}".format(
+                self.cal_metric.best_test_metrics["AUC"], self.cal_metric.best_test_metrics["AP"], self.cal_metric.best_val_metrics["AUC"], self.cal_metric.best_val_metrics["AP"]))
+
+        return self.cal_metric.best_test_metrics["AUC"], self.cal_metric.best_test_metrics["AP"]
+
+    @torch.no_grad()
+    def inference(self, x_in, adj_orig_dense_list_train, adj_orig_dense_list, pos_edges_l, neg_edges_l):
+        self.model.eval()
+        zs = self.model(adj_orig_dense_list_train, x_in)
+        print(len(x_in))
+        exit()
+        self.cal_metric.update(pos_edges_l
+                                , neg_edges_l
+                                , adj_orig_dense_list
+                                , zs)

@@ -94,7 +94,7 @@ class temporal_graph(torch_geometric.data.Dataset):
         val_len = self.cfg.DATASET.TEMPORAL.val_len
         test_len = self.cfg.DATASET.TEMPORAL.test_len
 
-        self.adj_dense_merge_train = merge_graph(self.adj_orig_dense_list[:length-test_len]) # Debug use: only train one snapshot
+        self.adj_dense_merge_train = merge_graph(self.adj_orig_dense_list[:length-test_len])
         self.adj_sparse_merge_train = csr_matrix(self.adj_dense_merge_train.numpy())
         
         self.adj_dense_merge_test = merge_graph(self.adj_orig_dense_list[length-test_len+val_len:])
@@ -118,7 +118,7 @@ class temporal_graph(torch_geometric.data.Dataset):
         self.pos_edges_l_static_test, self.neg_edges_l_static_test = get_pos_neg_edge_lst(self.adj_dense_merge_test)
         self.pos_edges_l_static_val, self.neg_edges_l_static_val = get_pos_neg_edge_lst(self.adj_dense_merge_val)
 
-        self.feat_static_train = merge_graph(self.feat[:length-test_len]) # Debug use: only train one snapshot
+        self.feat_static_train = merge_graph(self.feat[:length-test_len])
         self.feat_static_test = merge_graph(self.feat[length-test_len+val_len:])
         self.feat_static_val = merge_graph(self.feat[length-test_len:length-test_len+val_len])
 
