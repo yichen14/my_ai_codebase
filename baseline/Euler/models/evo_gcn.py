@@ -3,8 +3,8 @@ from types import SimpleNamespace as SN
 import torch 
 
 # Obtained from https://github.com/IBM/EvolveGCN
-from egcn_h_old import EGCN as EGCN_h
-from egcn_o_old import EGCN as EGCN_o
+from .egcn_h import EGCN as EGCN_h
+from .egcn_o import EGCN as EGCN_o
 
 class LP_EGCN_o(EGCN_o):
     def __init__(self, x_dim, h_dim, z_dim, inner_prod=False):

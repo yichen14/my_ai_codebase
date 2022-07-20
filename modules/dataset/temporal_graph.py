@@ -43,6 +43,7 @@ def to_undirect(sparse_matrices):
         undirect_sparse_list.append(csr_matrix(np.array(matrix.tolist())))
     return undirect_dense_list, undirect_sparse_list
 
+# Temporal Graph
 class temporal_graph(torch_geometric.data.Dataset):
     
     def __init__(self, cfg, device):
