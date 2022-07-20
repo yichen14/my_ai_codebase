@@ -1,17 +1,14 @@
+import utils as u
 import torch
 from torch.nn.parameter import Parameter
 import torch.nn as nn
 import math
-from collections import OrderedDict
 
-# Adapt from:
-# https://github.com/iHeartGraph/Euler/blob/main/benchmarks/models/evo_gcn.py
-# https://github.com/IBM/EvolveGCN
 
-class EGCN_O(torch.nn.Module):
-    def __init__(self, args, activation, device=0, skipfeats=False):
-        super(EGCN_O, self).__init__()
-        GRCU_args = Namespace({})
+class EGCN(torch.nn.Module):
+    def __init__(self, args, activation, device='cpu', skipfeats=False):
+        super().__init__()
+        GRCU_args = u.Namespace({})
 
         feats = [args.feats_per_node,
                  args.layer_1_feats,
@@ -19,25 +16,25 @@ class EGCN_O(torch.nn.Module):
         self.device = device
         self.skipfeats = skipfeats
         self.GRCU_layers = []
-        self.params = nn.ParameterList()
+        self._parameters = nn.ParameterList()
         for i in range(1,len(feats)):
-            GRCU_args = Namespace({'in_feats' : feats[i-1],
+            GRCU_args = u.Namespace({'in_feats' : feats[i-1],
                                      'out_feats': feats[i],
                                      'activation': activation})
 
             grcu_i = GRCU(GRCU_args)
             #print (i,'grcu_i', grcu_i)
             self.GRCU_layers.append(grcu_i.to(self.device))
-            self.params.extend(list(self.GRCU_layers[-1].parameters()))
+            self._parameters.extend(list(self.GRCU_layers[-1].parameters()))
 
     def parameters(self):
-        return self.params
+        return self._parameters
 
     def forward(self,A_list, Nodes_list,nodes_mask_list):
         node_feats= Nodes_list[-1]
 
         for unit in self.GRCU_layers:
-            Nodes_list = unit(A_list,Nodes_list)#,nodes_mask_list)
+            Nodes_list = unit(A_list,Nodes_list,nodes_mask_list)
 
         out = Nodes_list[-1]
         if self.skipfeats:
@@ -49,7 +46,7 @@ class GRCU(torch.nn.Module):
     def __init__(self,args):
         super().__init__()
         self.args = args
-        cell_args = Namespace({})
+        cell_args = u.Namespace({})
         cell_args.rows = args.in_feats
         cell_args.cols = args.out_feats
 
@@ -64,13 +61,13 @@ class GRCU(torch.nn.Module):
         stdv = 1. / math.sqrt(t.size(1))
         t.data.uniform_(-stdv,stdv)
 
-    def forward(self,A_list,node_embs_list):#,mask_list):
+    def forward(self,A_list,node_embs_list,mask_list):
         GCN_weights = self.GCN_init_weights
         out_seq = []
         for t,Ahat in enumerate(A_list):
             node_embs = node_embs_list[t]
             #first evolve the weights from the initial and use the new weights with the node_embs
-            GCN_weights = self.evolve_weights(GCN_weights)#,node_embs,mask_list[t])
+            GCN_weights = self.evolve_weights(GCN_weights,node_embs,mask_list[t])
             node_embs = self.activation(Ahat.matmul(node_embs.matmul(GCN_weights)))
 
             out_seq.append(node_embs)
@@ -96,9 +93,8 @@ class mat_GRU_cell(torch.nn.Module):
         self.choose_topk = TopK(feats = args.rows,
                                 k = args.cols)
 
-    def forward(self,prev_Q):#,prev_Z,mask):
-        # z_topk = self.choose_topk(prev_Z,mask)
-        z_topk = prev_Q
+    def forward(self,prev_Q,prev_Z,mask):
+        z_topk = self.choose_topk(prev_Z,mask)
 
         update = self.update(z_topk,prev_Q)
         reset = self.reset(z_topk,prev_Q)
@@ -158,7 +154,7 @@ class TopK(torch.nn.Module):
         topk_indices = topk_indices[vals > -float("Inf")]
 
         if topk_indices.size(0) < self.k:
-            topk_indices = pad_with_last_val(topk_indices,self.k)
+            topk_indices = u.pad_with_last_val(topk_indices,self.k)
             
         tanh = torch.nn.Tanh()
 
@@ -170,88 +166,3 @@ class TopK(torch.nn.Module):
 
         #we need to transpose the output
         return out.t()
-
-class Namespace(object):
-    '''
-    helps referencing object in a dictionary as dict.key instead of dict['key']
-    '''
-    def __init__(self, adict):
-        self.__dict__.update(adict)
-
-def pad_with_last_val(vect,k):
-    device = 'cuda' if vect.is_cuda else 'cpu'
-    pad = torch.ones(k - vect.size(0),
-                         dtype=torch.long,
-                         device = device) * vect[-1]
-    vect = torch.cat([vect,pad])
-    return vect
-
-from types import SimpleNamespace as SN
-
-
-class LP_EGCN_o(EGCN_O):
-    def __init__(self, x_dim, device, h_dim = 32, z_dim = 16, inner_prod=True):
-        # Why do they insist on doing it this way. Fixing it
-        args = SN(
-            feats_per_node=x_dim,
-            layer_1_feats=h_dim,
-            layer_2_feats=z_dim
-        )
-
-        # RReLU is default in their experiments, keeping it here
-        super(LP_EGCN_o, self).__init__(args, torch.nn.RReLU(), device=device)
-
-        # This is how the paper does it, but the experiments show
-        # it's not as effective for LP as using inner prod decoding
-        if not inner_prod:
-            self.classifier = torch.nn.Sequential(
-                torch.nn.Linear(z_dim*2, 1),
-                torch.nn.Sigmoid()
-            )
-        else:
-            self.classifier = None
-        
-
-    def forward(self,A_list, Nodes_list):
-        '''
-        Overriding their forward method to return all timesteps
-        instead of just the last one
-        '''
-
-        for unit in self.GRCU_layers:
-            Nodes_list = unit(A_list,Nodes_list)
-
-        return Nodes_list
-
-    # Copied from Euler
-    def calc_loss(self, t_scores, f_scores):
-        EPS = 1e-6
-        pos_loss = -torch.log(t_scores+EPS).mean()
-        neg_loss = -torch.log(1-f_scores+EPS).mean()
-
-        return pos_loss + neg_loss
-
-    def decode(self, src, dst, z):
-        if not self.classifier is None:
-            catted = torch.cat([z[src], z[dst]], dim=1)
-            return self.classifier(catted)
-        else:
-            dot = (z[src] * z[dst]).sum(dim=1)
-            return torch.sigmoid(dot)
-
-    def loss_fn(self, ts, fs, zs):
-        tot_loss = torch.zeros((1)).to(self.device)
-        T = len(ts)
-
-        for i in range(T):
-            t_src, t_dst = ts[i]
-            fs[i] = fs[i].T
-            f_src, f_dst = fs[i]
-            z = zs[i]
-            
-            tot_loss += self.calc_loss(
-                self.decode(t_src, t_dst, z),
-                self.decode(f_src, f_dst, z)
-            )   
-        return tot_loss.true_divide(T)
-

@@ -1,3 +1,4 @@
+
 import torch
 from .base_trainer import base_trainer
 from utils.metrics import Evaluation
@@ -19,7 +20,7 @@ class temp_graph_trainer(base_trainer):
         test_len = self.cfg.DATASET.TEMPORAL.test_len
         x_in = self.temporal_data.feat
         x_in = torch.stack(x_in).to(self.device)
-        edge_idx_list = self.temporal_data.edge_idx_list
+        edge_idx_list = self.temporal_data.eis
         adj_orig_dense_list = self.temporal_data.adj_orig_dense_list
         pos_edges_l, neg_edges_l = self.temporal_data.pos_edges_l, self.temporal_data.neg_edges_l
 
