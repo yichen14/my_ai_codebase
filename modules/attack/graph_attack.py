@@ -26,10 +26,9 @@ def random_attack_temporal(cfg, adj_matrix_lst, device):
         
     random_attack = Random(device=device)
     path = os.path.join(get_dataset_root(), attack_data_path, "{}_ptb_rate_{}_random".format(cfg.DATASET.dataset, ptb_rate))
-
     if cfg.ATTACK.new_attack or not os.path.exists(os.path.join(path, "adj_ptb_{}_test_{}.pickle".format(ptb_rate,test_len))):
         # generate attacked data
-        logging.info("Random attack on dataset: {} ptb_rate: {}".format(cfg.DATASET.dataset, ptb_rate))
+        logging.info("Random attack on dataset: {} ptb_rate: {} method: {}".format(cfg.DATASET.dataset, ptb_rate, "add"))
         if not os.path.exists(path):
             os.mkdir(path)
         attack_data = []
