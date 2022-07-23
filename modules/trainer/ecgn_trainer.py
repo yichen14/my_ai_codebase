@@ -43,8 +43,12 @@ class egcn_trainer(base_trainer):
             self.optimizer.zero_grad()
             
             zs = self.model(adj_orig_dense_list[train_start:train_end], x_in[train_start:train_end])
+            
+            neg_edges = []
+            for i in range(train_start+1, train_end):
+                neg_edges.append(negative_sampling(edge_idx_list[i], zs[i].size(0)).T)
 
-            loss = self.model.loss_fn(edge_idx_list[train_start:train_end-1], neg_edges_l[train_start:train_end-1], zs[:-1])
+            loss = self.model.loss_fn(edge_idx_list[train_start+1:train_end], neg_edges, zs[:-1])
 
             loss.backward()
             self.optimizer.step()
@@ -52,8 +56,10 @@ class egcn_trainer(base_trainer):
             nn.utils.clip_grad_norm_(self.model.parameters(), 10)
             
             if epoch % self.log_epoch == 0:
-        
-                self.inference(x_in[train_start:train_end], adj_orig_dense_list[train_start:train_end], adj_orig_dense_list[train_end:seq_end], 
+                # edge_list_testing = [edge_idx_list[train_end] for i in range(test_len)]
+                x_in_testing = torch.stack([x_in[train_end-1] for i in range(test_len)])
+                dense_list_testing = [adj_orig_dense_list[train_end-1] for i in range(test_len)]
+                self.inference(x_in_testing, dense_list_testing, adj_orig_dense_list[train_end:seq_end], 
                              pos_edges_l[train_end:seq_end], neg_edges_l[train_end:seq_end])
                 pbar.set_description('Epoch {}/{}, Loss {:.3f}, Test AUC {:.3f}, Test AP {:.3f}, Val AUC {:.3f}, Val AP {:.3f}, Time {:.1f}s'.format(epoch, self.max_epochs, loss.item(),self.cal_metric.test_metrics["AUC"], 
                     self.cal_metric.test_metrics["AP"], self.cal_metric.val_metrics["AUC"], self.cal_metric.val_metrics["AP"], time.time() - start_time))
@@ -61,14 +67,12 @@ class egcn_trainer(base_trainer):
         logging.info("Best performance: Test AUC {:.3f}, Test AP {:.3f}, Val AUC {:.3f}, Val AP {:.3f}".format(
                 self.cal_metric.best_test_metrics["AUC"], self.cal_metric.best_test_metrics["AP"], self.cal_metric.best_val_metrics["AUC"], self.cal_metric.best_val_metrics["AP"]))
 
-        return self.cal_metric.best_test_metrics["AUC"], self.cal_metric.best_test_metrics["AP"]
+        return self.cal_metric.best_test_metrics["AUC"], self.cal_metric.best_test_metrics["AP"], self.cal_metric.best_val_metrics["AUC"], self.cal_metric.best_val_metrics["AP"]
 
     @torch.no_grad()
     def inference(self, x_in, adj_orig_dense_list_train, adj_orig_dense_list, pos_edges_l, neg_edges_l):
         self.model.eval()
         zs = self.model(adj_orig_dense_list_train, x_in)
-        print(len(x_in))
-        exit()
         self.cal_metric.update(pos_edges_l
                                 , neg_edges_l
                                 , adj_orig_dense_list
