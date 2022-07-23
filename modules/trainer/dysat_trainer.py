@@ -153,7 +153,7 @@ class dysat_trainer(base_trainer):
             
             if epoch % self.log_epoch == 0:
                 # prepare testing input:
-                # graphs_testing = [feed_dict["graphs"][train_end-1] for i in range(test_len)]
+                # graphs_testing = [feed_dict["graphs"][train_end-1] for _ in range(train_end-train_start)]
                 graphs_testing = feed_dict["graphs"]
                 
                 self.inference(graphs_testing, adj_orig_dense_list[train_end:seq_end], 
@@ -170,7 +170,9 @@ class dysat_trainer(base_trainer):
     def inference(self, graphs, adj_orig_dense_list, pos_edges_l, neg_edges_l):
         self.model.eval()
         emb = self.model(graphs)[:,-1,:] # The last snapshot
-        embs = [emb for i in range(self.test_len)]
+        embs = [emb for _ in range(self.test_len)]
+        # emb = self.model(graphs)
+        # embs = [emb[:,i,:] for i in range(self.test_len)]
         self.cal_metric.update(pos_edges_l
                                 , neg_edges_l
                                 , adj_orig_dense_list
