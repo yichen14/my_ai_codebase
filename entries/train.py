@@ -34,6 +34,10 @@ def setup(cfg, args):
     elif cfg.MODEL.model in ["EGCN_H", "EGCN_O"]:
         model_cls = models.dispatcher(cfg)
         model = model_cls(data.feat_dim, torch.nn.RReLU(), device).to(device)
+    elif cfg.MODEL.model == "DYSAT":
+        model_cls = models.dispatcher(cfg)
+        test_len = cfg.DATASET.TEMPORAL.test_len
+        model = model_cls(data.feat_dim, data.time_step - test_len)
 
     # set up optimizer
     if cfg.TRAIN.OPTIMIZER.type == "adadelta":
@@ -59,7 +63,7 @@ def setup(cfg, args):
 def main():
     args = parse_args()
     test_auc, test_ap = [], []
-    for i in range(args.runs):
+    for i in range(1, args.runs+1):
         update_config_from_yaml(cfg, args)
         update_cfg_from_args(cfg, args)
         logging.basicConfig(level=logging.INFO, handlers=[logging.FileHandler(cfg.LOGGING.log_file), logging.StreamHandler()])

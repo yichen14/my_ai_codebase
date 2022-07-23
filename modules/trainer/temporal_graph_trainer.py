@@ -20,7 +20,7 @@ class temp_graph_trainer(base_trainer):
         test_len = self.cfg.DATASET.TEMPORAL.test_len
         x_in = self.temporal_data.feat
         x_in = torch.stack(x_in).to(self.device)
-        edge_idx_list = self.temporal_data.eis
+        edge_idx_list = self.temporal_data.edge_idx_list
         adj_orig_dense_list = self.temporal_data.adj_orig_dense_list
         pos_edges_l, neg_edges_l = self.temporal_data.pos_edges_l, self.temporal_data.neg_edges_l
 
@@ -29,6 +29,7 @@ class temp_graph_trainer(base_trainer):
         seq_end = self.temporal_data.time_step
 
         for i in range(self.temporal_data.time_step):
+            adj_orig_dense_list[i] = adj_orig_dense_list[i].to(self.device) 
             pos_edges_l[i] = torch.tensor(pos_edges_l[i]).to(self.device)
             neg_edges_l[i] = torch.tensor(neg_edges_l[i]).to(self.device)
             edge_idx_list[i] = edge_idx_list[i].to(self.device)
@@ -51,8 +52,8 @@ class temp_graph_trainer(base_trainer):
             
             if epoch % self.log_epoch == 0:
                 # prepare testing input:
-                edge_list_testing = [edge_idx_list[train_end] for i in range(test_len)]
-                x_in_testing = torch.stack([x_in[train_end] for i in range(test_len)])
+                edge_list_testing = [edge_idx_list[train_end - 1] for i in range(test_len)]
+                x_in_testing = torch.stack([x_in[train_end - 1] for i in range(test_len)])
                 
                 self.inference(x_in_testing, edge_list_testing, adj_orig_dense_list[train_end:seq_end], 
                             hidden_st, pos_edges_l[train_end:seq_end], neg_edges_l[train_end:seq_end])

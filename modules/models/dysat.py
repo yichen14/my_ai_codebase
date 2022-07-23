@@ -7,8 +7,12 @@ from torch.nn.modules.loss import BCEWithLogitsLoss
 from torch_geometric.utils import softmax
 from torch_scatter import scatter
 
+"""
+Copy from DySAT PyTorch: https://github.com/FeiGSSS/DySAT_pytorch
+"""
+
 class DySAT(nn.Module):
-    def __init__(self, args, num_features, time_length):
+    def __init__(self, num_features, time_length):
         """[summary]
 
         Args:
@@ -16,19 +20,32 @@ class DySAT(nn.Module):
             time_length (int): Total timesteps in dataset.
         """
         super(DySAT, self).__init__()
-        self.args = args
-        if args.window < 0:
+        # Default value for args in DySAT
+        window = -1 #Window for temporal attention (default : -1 => full)
+        
+        structural_head_config = '16, 8, 8'
+        structural_layer_config = '128'
+        temporal_head_config = '16'
+        temporal_layer_config = '128'
+
+        spatial_drop = 0.1
+        temporal_drop = 0.5
+
+        self.residual = True #Use residual
+        self.neg_weight = 1.0
+
+        if window < 0:
             self.num_time_steps = time_length
         else:
-            self.num_time_steps = min(time_length, args.window + 1)  # window = 0 => only self.
+            self.num_time_steps = min(time_length, window + 1)  # window = 0 => only self.
         self.num_features = num_features
 
-        self.structural_head_config = list(map(int, args.structural_head_config.split(",")))
-        self.structural_layer_config = list(map(int, args.structural_layer_config.split(",")))
-        self.temporal_head_config = list(map(int, args.temporal_head_config.split(",")))
-        self.temporal_layer_config = list(map(int, args.temporal_layer_config.split(",")))
-        self.spatial_drop = args.spatial_drop
-        self.temporal_drop = args.temporal_drop
+        self.structural_head_config = list(map(int, structural_head_config.split(",")))
+        self.structural_layer_config = list(map(int, structural_layer_config.split(",")))
+        self.temporal_head_config = list(map(int, temporal_head_config.split(",")))
+        self.temporal_layer_config = list(map(int, temporal_layer_config.split(",")))
+        self.spatial_drop = spatial_drop
+        self.temporal_drop = temporal_drop
 
         self.structural_attn, self.temporal_attn = self.build_model()
 
@@ -68,7 +85,7 @@ class DySAT(nn.Module):
                                              n_heads=self.structural_head_config[i],
                                              attn_drop=self.spatial_drop,
                                              ffd_drop=self.spatial_drop,
-                                             residual=self.args.residual)
+                                             residual=self.residual)
             structural_attention_layers.add_module(name="structural_layer_{}".format(i), module=layer)
             input_dim = self.structural_layer_config[i]
         
@@ -80,7 +97,7 @@ class DySAT(nn.Module):
                                            n_heads=self.temporal_head_config[i],
                                            num_time_steps=self.num_time_steps,
                                            attn_drop=self.temporal_drop,
-                                           residual=self.args.residual)
+                                           residual=self.residual)
             temporal_attention_layers.add_module(name="temporal_layer_{}".format(i), module=layer)
             input_dim = self.temporal_layer_config[i]
 
@@ -100,7 +117,7 @@ class DySAT(nn.Module):
             neg_score = -torch.sum(source_node_emb[:, None, :]*tart_node_neg_emb, dim=2).flatten()
             pos_loss = self.bceloss(pos_score, torch.ones_like(pos_score))
             neg_loss = self.bceloss(neg_score, torch.ones_like(neg_score))
-            graphloss = pos_loss + self.args.neg_weight*neg_loss
+            graphloss = pos_loss + self.neg_weight*neg_loss
             self.graph_loss += graphloss
         return self.graph_loss
 
