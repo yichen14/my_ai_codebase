@@ -23,9 +23,9 @@ def dispatcher(cfg):
     if model_name == "VGRNN":
         from .VGRNN import VGRNN as RGCN_cls
         return RGCN_cls
-    if model_name == "EGCN_H":
-        from .evo_gcn import LP_EGCN_h as RGCN_cls
+    if model_name == "EGCNH":
+        from .egcn_h import LP_EGCN_h as RGCN_cls
         return RGCN_cls
-    if model_name == "EGCN_O":
-        from .evo_gcn import LP_EGCN_o as RGCN_cls
+    if model_name == "EGCNO":
+        from .egcn_o import LP_EGCN_o as RGCN_cls
         return RGCN_cls

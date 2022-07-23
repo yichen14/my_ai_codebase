@@ -23,19 +23,22 @@ import numpy as np
 # data = loader.get_dataset()
 # train_data, test_data = temporal_signal_split(data, train_ratio=0.2)
 # for time, snapshot in enumerate(train_data):
-#     print(snapshot.edge_attr, snapshot.edge_index)
+#     print(snapshot.y)
+#     print(snapshot.y.size())
 #     break
+
 
 from deeprobust.graph.data import Dataset
 from deeprobust.graph.global_attack import Random
 ptb_rate = 0.5
 data = Dataset(root='/tmp/', name='cora')
 adj, features, labels = data.adj, data.features, data.labels
-num_edges = np.sum(adj)
-num_perturbations = int(num_edges*ptb_rate)//2
-print(num_edges) # 10138
-print(num_perturbations) # 2534
-model = Random()
-model.attack(adj, n_perturbations=num_perturbations)
-modified_adj = model.modified_adj
-print(np.sum(modified_adj)) #15206
+print(len(adj))
+# num_edges = np.sum(adj)
+# num_perturbations = int(num_edges*ptb_rate)//2
+# print(num_edges) # 10138
+# print(num_perturbations) # 2534
+# model = Random()
+# model.attack(adj, n_perturbations=num_perturbations)
+# modified_adj = model.modified_adj
+# print(np.sum(modified_adj)) #15206
