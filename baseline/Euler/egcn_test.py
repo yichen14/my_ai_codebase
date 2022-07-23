@@ -197,7 +197,7 @@ if __name__ == '__main__':
     args = ap.parse_args()
 
     m_constructor = LP_EGCN_o if args.o else LP_EGCN_h
-    outf = 'egcn_o.txt' if args.o else 'egcn_h.txt'
+    outf = 'egcn_o_2.txt' if args.o else 'egcn_h_2.txt'
 
     for d in ['enron10', 'fb', 'dblp']:
         data = vd.load_vgrnn(d, ptb_rate=args.att, test_len=TEST_TS)

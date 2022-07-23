@@ -48,6 +48,9 @@ def random_attack_temporal(adj_matrix_lst, ptb_rate, test_len):
         adj_matrix = adj_matrix_lst[time_step]
         random_attack.attack(adj_matrix, n_perturbations = num_modified, type="add")
         attack_data.append(random_attack.modified_adj)
+    
+    for time_step in range(len(adj_matrix_lst) - test_len, len(adj_matrix_lst)):
+        attack_data.append(adj_matrix_lst[time_step])
 
     return attack_data
     

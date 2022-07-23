@@ -17,7 +17,6 @@ def dispatcher(cfg, device = "cuda:0"):
         return loader.get_dataset()
     if dataset_name in ["dblp", "enron10", "fb"]:
         from .temporal_graph import temporal_graph as temporal_graph_dataloader
-        # from .egcn_graph import temporal_graph as temporal_graph_dataloader
         return temporal_graph_dataloader(cfg, device)
     else:
         raise NotImplementedError

@@ -1,0 +1,168 @@
+enron10
+LR: 0.0200
+===== ptb_rate 0.0000; test_len 3 =====
+pred-auc    93.027303
+pred-ap     93.939113
+new-auc     87.708560
+new-ap      88.314377
+dtype: float64
+pred-auc    0.124571
+pred-ap     0.189646
+new-auc     0.097158
+new-ap      0.450713
+dtype: float64
+
+fb
+LR: 0.0200
+===== ptb_rate 0.0000; test_len 3 =====
+pred-auc    88.971533
+pred-ap     87.558280
+new-auc     87.265122
+new-ap      85.172850
+dtype: float64
+pred-auc    0.107747
+pred-ap     0.165348
+new-auc     0.113480
+new-ap      0.150744
+dtype: float64
+
+dblp
+LR: 0.0200
+===== ptb_rate 0.0000; test_len 3 =====
+pred-auc    85.614029
+pred-ap     88.064170
+new-auc     76.921839
+new-ap      80.094344
+dtype: float64
+pred-auc    0.270487
+pred-ap     0.312316
+new-auc     0.450696
+new-ap      0.265283
+dtype: float64
+
+enron10
+LR: 0.0200
+===== ptb_rate 0.1000; test_len 3 =====
+pred-auc    92.725450
+pred-ap     93.232565
+new-auc     87.200875
+new-ap      87.258694
+dtype: float64
+pred-auc    0.386772
+pred-ap     0.450803
+new-auc     0.664810
+new-ap      0.785388
+dtype: float64
+
+fb
+LR: 0.0200
+===== ptb_rate 0.1000; test_len 3 =====
+pred-auc    88.796086
+pred-ap     87.552249
+new-auc     86.814725
+new-ap      84.811094
+dtype: float64
+pred-auc    0.437763
+pred-ap     0.584462
+new-auc     0.472893
+new-ap      0.624940
+dtype: float64
+
+dblp
+LR: 0.0200
+===== ptb_rate 0.1000; test_len 3 =====
+pred-auc    85.016614
+pred-ap     87.107230
+new-auc     76.443189
+new-ap      78.545529
+dtype: float64
+pred-auc    0.491782
+pred-ap     0.509995
+new-auc     0.834930
+new-ap      0.634014
+dtype: float64
+
+enron10
+LR: 0.0200
+===== ptb_rate 0.3000; test_len 3 =====
+pred-auc    90.706166
+pred-ap     91.166494
+new-auc     83.980504
+new-ap      83.627783
+dtype: float64
+pred-auc    0.435553
+pred-ap     0.567543
+new-auc     0.731640
+new-ap      1.255015
+dtype: float64
+
+fb
+LR: 0.0200
+===== ptb_rate 0.3000; test_len 3 =====
+pred-auc    87.328767
+pred-ap     86.123503
+new-auc     85.491051
+new-ap      83.667528
+dtype: float64
+pred-auc    0.319203
+pred-ap     0.417566
+new-auc     0.247865
+new-ap      0.310834
+dtype: float64
+
+dblp
+LR: 0.0200
+===== ptb_rate 0.3000; test_len 3 =====
+pred-auc    83.767302
+pred-ap     86.165759
+new-auc     74.852514
+new-ap      77.212710
+dtype: float64
+pred-auc    0.241567
+pred-ap     0.287842
+new-auc     0.636684
+new-ap      0.611597
+dtype: float64
+
+enron10
+LR: 0.0200
+===== ptb_rate 0.5000; test_len 3 =====
+pred-auc    89.634644
+pred-ap     90.492047
+new-auc     83.151103
+new-ap      82.931762
+dtype: float64
+pred-auc    0.684666
+pred-ap     0.367469
+new-auc     1.106521
+new-ap      0.737889
+dtype: float64
+
+fb
+LR: 0.0200
+===== ptb_rate 0.5000; test_len 3 =====
+pred-auc    86.377223
+pred-ap     85.292775
+new-auc     84.242840
+new-ap      82.915872
+dtype: float64
+pred-auc    0.254156
+pred-ap     0.350860
+new-auc     0.224887
+new-ap      0.378680
+dtype: float64
+
+dblp
+LR: 0.0200
+===== ptb_rate 0.5000; test_len 3 =====
+pred-auc    84.594868
+pred-ap     86.785589
+new-auc     76.693981
+new-ap      78.838753
+dtype: float64
+pred-auc    0.471173
+pred-ap     0.498680
+new-auc     0.476804
+new-ap      0.366981
+dtype: float64
+

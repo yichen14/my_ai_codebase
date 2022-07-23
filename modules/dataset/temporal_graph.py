@@ -13,6 +13,7 @@ import logging
 from scipy.sparse import csr_matrix
 from tqdm import trange
 import logging
+import networkx as nx
 
 def sparse_to_tuple(sparse_mx):
     if not sp.isspmatrix_coo(sparse_mx):
@@ -69,8 +70,16 @@ class temporal_graph(torch_geometric.data.Dataset):
 
         self.adj_orig_dense_list, self.adj_time_list = to_undirect(self.adj_time_list) # to undirect
 
+        # Attack 
         if attack_flag and attack_func is not None:
             self.adj_time_list = attack_func(self.cfg, self.adj_time_list, self.device)
+        
+        # For DySAT
+        # Conver sparse matrix to MultiGraph
+        self.graphs = []
+        for i in range(len(self.adj_time_list)):
+            G = nx.from_scipy_sparse_matrix(self.adj_time_list[i], create_using=nx.MultiGraph)
+            self.graphs.append(G)
 
         self.time_step = len(self.adj_time_list)
         self.adj_orig_dense_list = csr_matrix_to_tensor(self.adj_time_list)

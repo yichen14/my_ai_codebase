@@ -28,4 +28,6 @@ def dispatcher(cfg):
         return RGCN_cls
     if model_name == "EGCNO":
         from .egcn_o import LP_EGCN_o as RGCN_cls
+    if model_name == "DYSAT":
+        from .dysat import DySAT as RGCN_cls
         return RGCN_cls
