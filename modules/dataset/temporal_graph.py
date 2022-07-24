@@ -11,7 +11,7 @@ import attack
 import os
 import logging
 from scipy.sparse import csr_matrix
-from tqdm import trange
+from tqdm import tqdm, trange
 import logging
 import networkx as nx
 
@@ -36,12 +36,13 @@ def to_undirect(sparse_matrices):
     dense_matrices = csr_matrix_to_tensor(sparse_matrices)
     undirect_dense_list = []
     undirect_sparse_list = []
-    N = dense_matrices[0].shape[0]
+    # N = dense_matrices[0].shape[0]
     for matrix in dense_matrices:
-        for i in range(N):
-            for j in range(N):
-                if matrix[i, j] == 1:
-                    matrix[j, i] = 1
+        # for i in range(N):
+        #     for j in range(N):
+        #         if matrix[i, j] == 1:
+        #             matrix[j, i] = 1
+        matrix = torch.logical_or(matrix, matrix.T)
         undirect_dense_list.append(matrix)
         undirect_sparse_list.append(csr_matrix(np.array(matrix.tolist())))
     return undirect_dense_list, undirect_sparse_list
@@ -179,18 +180,12 @@ class temporal_graph(torch_geometric.data.Dataset):
 
         self.load_from_data_dict(data_dict)
 
-
-
-
     def prepare_edge_list(self):
         edge_list = self.mask_edges_det()
         self.edge_idx_list = []
         for i in range(len(edge_list)):
             self.edge_idx_list.append(torch.tensor(np.transpose(edge_list[i]), dtype=torch.long))
             
-            
-    
-    # def get_static_edges_lst(self):
         
 
     def mask_edges_det(self):
