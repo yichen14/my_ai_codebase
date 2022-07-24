@@ -31,3 +31,6 @@ def dispatcher(cfg):
     if model_name == "DYSAT":
         from .dysat import DySAT as RGCN_cls
         return RGCN_cls
+    if model_name == "EULER":
+        from .euler import EulerGCN as RGCN_cls
+        return RGCN_cls
