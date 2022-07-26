@@ -32,7 +32,7 @@ def setup(cfg, args):
     elif cfg.MODEL.model == "DYSAT":
         model_cls = models.dispatcher(cfg)
         test_len = cfg.DATASET.TEMPORAL.test_len
-        model = model_cls(data.feat_dim, data.time_step - test_len)
+        model = model_cls(data.feat_dim, data.time_step - test_len).to(device)
     else:
         model_cls = models.dispatcher(cfg)
         model = model_cls(data.feat_dim, device).to(device)

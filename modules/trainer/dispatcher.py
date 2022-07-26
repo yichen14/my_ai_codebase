@@ -11,6 +11,9 @@ def dispatcher(cfg):
         if model_name in ["EGCNO", "EGCNH"]:
             from .ecgn_trainer import egcn_trainer as egcn_trainer_fn
             return egcn_trainer_fn
+        elif model_name == "EULER":
+            from .euler_trainer import euler_trainer as euler_trainer_fn
+            return euler_trainer_fn
         elif model_name == "DYSAT":
             from .dysat_trainer import dysat_trainer as dysat_trainer_fn
             return dysat_trainer_fn

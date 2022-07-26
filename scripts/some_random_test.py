@@ -1,5 +1,5 @@
 import numpy as np
-
+import torch
 # from torch_geometric.datasets import Planetoid
 # import torch_geometric.transforms as T
 # dataset_module = Planetoid(root = "/home/randomgraph/data/", name="Cora")
@@ -28,12 +28,12 @@ import numpy as np
 #     break
 
 
-from deeprobust.graph.data import Dataset
-from deeprobust.graph.global_attack import Random
-ptb_rate = 0.5
-data = Dataset(root='/tmp/', name='cora')
-adj, features, labels = data.adj, data.features, data.labels
-print(len(adj))
+# from deeprobust.graph.data import Dataset
+# from deeprobust.graph.global_attack import Random
+# ptb_rate = 0.5
+# data = Dataset(root='/tmp/', name='cora')
+# adj, features, labels = data.adj, data.features, data.labels
+# print(len(adj))
 # num_edges = np.sum(adj)
 # num_perturbations = int(num_edges*ptb_rate)//2
 # print(num_edges) # 10138
@@ -42,3 +42,12 @@ print(len(adj))
 # model.attack(adj, n_perturbations=num_perturbations)
 # modified_adj = model.modified_adj
 # print(np.sum(modified_adj)) #15206
+
+
+# matrix = torch.tensor(np.array( [[0,0,0,0,1],
+#                    [1,0,0,0,0],
+#                    [0,1,0,1,0],
+#                    [0,1,0,0,1],
+#                    [0,0,0,0,0]]))
+
+# print(torch.logical_or(matrix, matrix.T))
