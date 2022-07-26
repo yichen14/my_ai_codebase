@@ -3,10 +3,10 @@ task: "temporal_link_prediction"
 seed: 321
 
 MODEL:
-  model: "EGCNH"
+  model: "VGRNN"
 
 DATASET:
-  dataset: "dblp"
+  dataset: "wikipedia"
   TEMPORAL:
     use_feat: False
     test_len: 3
@@ -21,7 +21,7 @@ TRAIN:
 
 ATTACK:
   method: "random"
-  ptb_rate: 0.0
+  ptb_rate: 0.1
   attack_data_path: "attack_data"
   new_attack: False
 

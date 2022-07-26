@@ -1,6 +1,9 @@
-import json
 import numpy as np
 import pandas as pd
+import pickle
+import scipy
+import scipy.sparse as sps
+import os
 
 def preprocess(data_name):
     u_list, i_list, ts_list, label_list = [], [], [], []
@@ -14,9 +17,6 @@ def preprocess(data_name):
             e = line.strip().split(',')
             u = int(e[0])
             i = int(e[1])
-            
-            
-            
             ts = float(e[2])
             label = int(e[3])
             
@@ -35,8 +35,6 @@ def preprocess(data_name):
                          'label':label_list, 
                          'idx':idx_list}), np.array(feat_l)
 
-
-
 def reindex(df):
     assert(df.u.max() - df.u.min() + 1 == len(df.u.unique()))
     assert(df.i.max() - df.i.min() + 1 == len(df.i.unique()))
@@ -45,43 +43,57 @@ def reindex(df):
     new_i = df.i + upper_u
     
     new_df = df.copy()
+
     print(new_df.u.max())
     print(new_df.i.max())
-    
+    print(len(new_df))
+
     new_df.i = new_i
     new_df.u += 1
     new_df.i += 1
     new_df.idx += 1
     
-    print(new_df.u.max())
-    print(new_df.i.max())
-    
     return new_df
 
+def edge_list_to_coo_matrix(edge_lists):
+    adj_time_lists = []
+    for t in range(len(edge_lists)):
+        row, col, data = [], [], []
+        for u, i in edge_lists[t]:
+            row.append(int(u))
+            row.append(int(i))
+            col.append(int(u))
+            col.append(int(i))
+            data.append(1)
+            data.append(1)
+        adj_time_lists.append(sps.coo_matrix((data, (row, col))))
+    return adj_time_lists
 
+def prepare_edge_list(df, time_step):
+    edge_lists = [[] for i in range(time_step)]
+    t_max, t_min = df.ts.max(), df.ts.min()
+    t_delta = (t_max - t_min) / time_step + 1e-6
+    for _, row in df.iterrows():
+        t = int((row.ts - t_min) / t_delta)
+        edge_lists[t].append((row.u, row.i))
+    adj_time_lists = edge_list_to_coo_matrix(edge_lists)
+    return adj_time_lists
 
 def run(data_name):
     PATH = '../raw_data/{0}/{1}.csv'.format(data_name, data_name)
-    OUT_DF = '../data/{}/temporal_link.csv'.format(data_name)
-    OUT_FEAT = '../data/{}/edge_feat.npy'.format(data_name)
-    OUT_NODE_FEAT = '../data/{}/node_feat.npy'.format(data_name)
+    OUT_PATH = '../data/{}'.format(data_name)
+    if not os.path.exists(OUT_PATH):
+        os.makedirs(OUT_PATH)
+    OUT_EDGE_LIST = '../data/{}/adj_time_list.pickle'.format(data_name)
     
     df, feat = preprocess(PATH)
     new_df = reindex(df)
-    
-    print(feat.shape)
-    empty = np.zeros(feat.shape[1])[np.newaxis, :]
-    feat = np.vstack([empty, feat])
-    
-    max_idx = max(new_df.u.max(), new_df.i.max())
-    rand_feat = np.zeros((max_idx + 1, feat.shape[1]))
-    
-    print(feat.shape)
-    new_df.to_csv(OUT_DF)
-    np.save(OUT_FEAT, feat)
-    np.save(OUT_NODE_FEAT, rand_feat)
-    
-    
-# run('wikipedia')
+    adj_time_lists = prepare_edge_list(new_df, time_step = 16)
+    with open(OUT_EDGE_LIST, 'wb') as f:
+        pickle.dump(adj_time_lists, f)
 
-run('reddit')
+if __name__ == '__main__':
+    run('reddit')
+    run('wikipedia')
+
+

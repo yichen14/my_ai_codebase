@@ -14,6 +14,7 @@ from scipy.sparse import csr_matrix
 from tqdm import trange
 import logging
 import networkx as nx
+import datetime
 
 def sparse_to_tuple(sparse_mx):
     if not sp.isspmatrix_coo(sparse_mx):
@@ -68,18 +69,20 @@ class temporal_graph(torch_geometric.data.Dataset):
         with open(adj_time_list_path, 'rb') as handle:
             self.adj_time_list = pickle.load(handle,encoding="latin1")
 
-        self.adj_orig_dense_list, self.adj_time_list = to_undirect(self.adj_time_list) # to undirect
+        # self.adj_orig_dense_list, self.adj_time_list = to_undirect(self.adj_time_list) # to undirect
 
         # Attack 
+        logging.info("Start to attack graphs, time:{}".format(datetime.datetime.now()))
         if attack_flag and attack_func is not None:
             self.adj_time_list = attack_func(self.cfg, self.adj_time_list, self.device)
         
         # For DySAT
         # Conver sparse matrix to MultiGraph
-        self.graphs = []
-        for i in range(len(self.adj_time_list)):
-            G = nx.from_scipy_sparse_matrix(self.adj_time_list[i], create_using=nx.MultiGraph)
-            self.graphs.append(G)
+        if self.cfg.MODEL.model == "dysat":
+            self.graphs = []
+            for i in range(len(self.adj_time_list)):
+                G = nx.from_scipy_sparse_matrix(self.adj_time_list[i], create_using=nx.MultiGraph)
+                self.graphs.append(G)
 
         self.time_step = len(self.adj_time_list)
         self.adj_orig_dense_list = csr_matrix_to_tensor(self.adj_time_list)
@@ -93,9 +96,10 @@ class temporal_graph(torch_geometric.data.Dataset):
         self.feat_dim = self.feat[0].shape[1]
 
         self.data = [Data(x=self.feat[i], edge_index = self.adj_time_list[i]) for i in range(self.time_step)]
+        logging.info("Start to prepare edge list, time:{}".format(datetime.datetime.now()))
         self.pos_edges_l, self.neg_edges_l = self.mask_edges_prd()
         self.prepare_edge_list()
-
+        logging.info("Finish to load temporal graphs, time:{}".format(datetime.datetime.now()))
         if self.cfg.task == "static_link_prediction":
             # if the model is GAE or any static graph neural network, merged dataset for static gnn training
             self.prepare_static_dataset()
