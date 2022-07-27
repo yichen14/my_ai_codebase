@@ -1,14 +1,13 @@
-import utils as u
 import torch
 from torch.nn.parameter import Parameter
 import torch.nn as nn
 import math
+from types import SimpleNamespace as SN
 
-
-class EGCN(torch.nn.Module):
-    def __init__(self, args, activation, device='cpu', skipfeats=False):
+class EGCN_h(torch.nn.Module):
+    def __init__(self, args, activation, device, skipfeats=False):
         super().__init__()
-        GRCU_args = u.Namespace({})
+        GRCU_args = Namespace({})
 
         feats = [args.feats_per_node,
                  args.layer_1_feats,
@@ -16,17 +15,17 @@ class EGCN(torch.nn.Module):
         self.device = device
         self.skipfeats = skipfeats
         self.GRCU_layers = []
-        self._parameters = nn.ParameterList()
+        self.params = nn.ParameterList()
         for i in range(1,len(feats)):
-            GRCU_args = u.Namespace({'in_feats' : feats[i-1],
+            GRCU_args = Namespace({'in_feats' : feats[i-1],
                                      'out_feats': feats[i],
                                      'activation': activation})
             grcu_i = GRCU(GRCU_args)
             self.GRCU_layers.append(grcu_i.to(self.device))
-            self._parameters.extend(list(self.GRCU_layers[-1].parameters()))
+            self.params.extend(list(self.GRCU_layers[-1].parameters()))
 
     def parameters(self):
-        return self._parameters
+        return self.params
 
     def forward(self, A_list, Nodes_list, edge_feats, nodes_mask_list):
         node_feats= Nodes_list[-1]
@@ -44,7 +43,7 @@ class GRCU(torch.nn.Module):
     def __init__(self,args):
         super().__init__()
         self.args = args
-        cell_args = u.Namespace({})
+        cell_args = Namespace({})
         cell_args.rows = args.in_feats
         cell_args.cols = args.out_feats
 
@@ -146,6 +145,7 @@ class TopK(torch.nn.Module):
 
     def forward(self,node_embs,mask):
         scores = node_embs.matmul(self.scorer) / self.scorer.norm()
+
         scores = scores + mask
 
         #print(self.k)
@@ -166,3 +166,84 @@ class TopK(torch.nn.Module):
 
         #we need to transpose the output
         return out.t()
+
+class LP_EGCN_h(EGCN_h):
+    def __init__(self, x_dim, device, h_dim = 32, z_dim = 16, inner_prod=True):
+        args = SN(
+            feats_per_node=x_dim,
+            layer_1_feats=h_dim,
+            layer_2_feats=z_dim
+        )
+
+        # RReLU is default in their experiments, keeping it here
+        super().__init__(args, torch.nn.RReLU(), device)
+
+        # This is how the paper does it, but the experiments show
+        # it's not as effective for LP as using inner prod decoding
+        if not inner_prod:
+            self.classifier = torch.nn.Sequential(
+                torch.nn.Linear(z_dim*2, 1),
+                torch.nn.Sigmoid()
+            )
+        else:
+            self.classifier = None
+        
+    def forward(self,A_list, Nodes_list):
+        '''
+        Overriding their forward method to return all timesteps
+        instead of just the last one
+        '''
+        masks = [torch.zeros(A_list[0].size(0),1).to(self.device) for _ in range(len(A_list))]
+
+        for unit in self.GRCU_layers:
+            Nodes_list = unit(A_list,Nodes_list,masks)
+
+        return Nodes_list
+
+    # Copied from Euler
+    def calc_loss(self, t_scores, f_scores):
+        EPS = 1e-6
+        pos_loss = -torch.log(t_scores+EPS).mean()
+        neg_loss = -torch.log(1-f_scores+EPS).mean()
+
+        return pos_loss + neg_loss
+
+    def decode(self, src, dst, z):
+        if not self.classifier is None:
+            catted = torch.cat([z[src], z[dst]], dim=1)
+            return self.classifier(catted)
+        else:
+            dot = (z[src] * z[dst]).sum(dim=1)
+            return torch.sigmoid(dot)
+
+    def loss_fn(self, ts, fs, zs):
+        tot_loss = torch.zeros((1)).to(self.device)
+        T = len(ts)
+
+        for i in range(T):
+            t_src, t_dst = ts[i]
+            fs[i] = fs[i].T
+            f_src, f_dst = fs[i]
+            z = zs[i]
+            
+            tot_loss += self.calc_loss(
+                self.decode(t_src, t_dst, z),
+                self.decode(f_src, f_dst, z)
+            )   
+
+        return tot_loss.true_divide(T)
+
+class Namespace(object):
+    '''
+    helps referencing object in a dictionary as dict.key instead of dict['key']
+    '''
+    def __init__(self, adict):
+        self.__dict__.update(adict)
+
+def pad_with_last_val(vect,k):
+    device = 'cuda' if vect.is_cuda else 'cpu'
+    pad = torch.ones(k - vect.size(0),
+                         dtype=torch.long,
+                         device = device) * vect[-1]
+    vect = torch.cat([vect,pad])
+    return vect

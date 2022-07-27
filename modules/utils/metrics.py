@@ -20,6 +20,10 @@ class Evaluation():
             self.best_test_metrics["AP"] = self.test_metrics["AP"]
             self.best_val_metrics["AUC"] = self.val_metrics["AUC"]
             self.best_val_metrics["AP"] = self.val_metrics["AP"]
+    
+    def decode(self, src, dst, z):
+        dot = (z[src] * z[dst]).sum(dim=1)
+        return torch.sigmoid(dot)
 
     def update(self, edges_pos, edges_neg, adj_orig_dense_list, embs):
         def sigmoid(x):
@@ -27,35 +31,58 @@ class Evaluation():
         
         val_auc_scores, val_ap_scores = [], []
         test_auc_scores, test_ap_scores = [], []
-        
-        for i in range(len(edges_pos)):
+        tscores = []
+        fscores = []
+        test_len = len(edges_pos)
+        for i in range(test_len):
             # Predict on test set of edges
-            emb = embs[i].cpu().detach().numpy()
-            adj_rec = np.dot(emb, emb.T)
-            adj_orig_t = adj_orig_dense_list[i]
-            preds = []
-            pos = []
-            for e in edges_pos[i]:
-                preds.append(expit(adj_rec[e[0], e[1]]))
-                pos.append(adj_orig_t[e[0], e[1]])
-                
-            preds_neg = []
-            neg = []
-            for e in edges_neg[i]:
-                preds_neg.append(expit(adj_rec[e[0], e[1]]))
-                neg.append(adj_orig_t[e[0], e[1]])
+            emb = embs[i].cpu().detach()
             
-            preds_all = np.hstack([preds, preds_neg])
-            labels_all = np.hstack([np.ones(len(preds)), np.zeros(len(preds_neg))])
-            # labels_all = np.hstack([pos, neg])
+            edges_p = edges_pos[i].cpu().detach().T
+            edges_n = edges_neg[i].cpu().detach().T
+
+            t_src, t_dst = edges_p
+            f_src, f_dst = edges_n
+            tscores = self.decode(t_src.long(), t_dst.long(), emb)
+            fscores = self.decode(f_src, f_dst, emb)
+ 
+
+            ntp = tscores.size(0)
+            ntn = fscores.size(0)
+
+            score = torch.cat([tscores, fscores]).numpy()
+            labels = np.zeros(ntp + ntn, dtype=np.long)
+            labels[:ntp] = 1
+
+            ap = average_precision_score(labels, score)
+            auc = roc_auc_score(labels, score)
+            
+            # adj_rec = np.dot(emb, emb.T)
+            # adj_orig_t = adj_orig_dense_list[i]
+            # preds = []
+            # pos = []
+            # for e in edges_pos[i]:
+            #     preds.append(expit(adj_rec[e[0], e[1]]))
+            #     pos.append(adj_orig_t[e[0], e[1]])
+                
+            # preds_neg = []
+            # neg = []
+            # for e in edges_neg[i]:
+            #     preds_neg.append(expit(adj_rec[e[0], e[1]]))
+            #     neg.append(adj_orig_t[e[0], e[1]])
+            
+            # preds_all = np.hstack([preds, preds_neg])
+            # labels_all = np.hstack([np.ones(len(preds)), np.zeros(len(preds_neg))])
+            # ap = average_precision_score(labels_all, preds_all)
+            # auc = roc_auc_score(labels_all, preds_all)
             if i < self.val_len:
                 # validation performance:
-                val_auc_scores.append(roc_auc_score(labels_all, preds_all))
-                val_ap_scores.append(average_precision_score(labels_all, preds_all))
+                val_auc_scores.append(auc)
+                val_ap_scores.append(ap)
             else:
                 # testing performance:
-                test_auc_scores.append(roc_auc_score(labels_all, preds_all))
-                test_ap_scores.append(average_precision_score(labels_all, preds_all))
+                test_auc_scores.append(auc)
+                test_ap_scores.append(ap)
 
         self.val_metrics["AUC"] = np.mean(val_auc_scores)
         self.val_metrics["AP"] = np.mean(val_ap_scores)

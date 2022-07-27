@@ -14,6 +14,7 @@ import trainer
 import loss
 import logging
 import datetime
+import os
 
 def setup(cfg, args):
     # get device
@@ -28,16 +29,14 @@ def setup(cfg, args):
     if cfg.MODEL.encoder != "none":
         model_cls, encoder_cls = models.dispatcher(cfg)
         model = model_cls(encoder_cls(cfg)).to(device)
-    elif cfg.MODEL.model == "VGRNN":
-        model_cls = models.dispatcher(cfg)
-        model = model_cls(data.feat_dim, device).to(device)
-    elif cfg.MODEL.model in ["EGCN_H", "EGCN_O"]:
-        model_cls = models.dispatcher(cfg)
-        model = model_cls(data.feat_dim, torch.nn.RReLU(), device).to(device)
     elif cfg.MODEL.model == "DYSAT":
         model_cls = models.dispatcher(cfg)
         test_len = cfg.DATASET.TEMPORAL.test_len
-        model = model_cls(data.feat_dim, data.time_step - test_len)
+        model = model_cls(data.feat_dim, data.time_step - test_len).to(device)
+    else:
+        model_cls = models.dispatcher(cfg)
+        model = model_cls(data.feat_dim, device).to(device)
+    
 
     # set up optimizer
     if cfg.TRAIN.OPTIMIZER.type == "adadelta":
@@ -62,11 +61,20 @@ def setup(cfg, args):
 
 def main():
     args = parse_args()
+    update_config_from_yaml(cfg, args)
+    update_cfg_from_args(cfg, args)
     test_auc, test_ap = [], []
+    save_dir = './trained_model/{}_{}_{}_{}_lr_{}/'.format(
+        cfg.DATASET.dataset, cfg.MODEL.model, cfg.ATTACK.method, cfg.ATTACK.ptb_rate, cfg.TRAIN.initial_lr)
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+    args.log_file = os.path.join(save_dir, 'log.txt')
+    args.model_file = os.path.join(save_dir, 'model.pt')
+
     for i in range(1, args.runs+1):
         update_config_from_yaml(cfg, args)
         update_cfg_from_args(cfg, args)
-        logging.basicConfig(level=logging.INFO, handlers=[logging.FileHandler(cfg.LOGGING.log_file), logging.StreamHandler()])
+        logging.basicConfig(level=logging.INFO, handlers=[logging.FileHandler(args.log_file), logging.StreamHandler()])
         np.random.seed(cfg.seed)
         torch.manual_seed(cfg.seed)
 

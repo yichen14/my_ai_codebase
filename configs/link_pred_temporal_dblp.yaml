@@ -3,7 +3,7 @@ task: "temporal_link_prediction"
 seed: 321
 
 MODEL:
-  model: "DYSAT"
+  model: "EULER"
 
 DATASET:
   dataset: "dblp"
@@ -12,10 +12,10 @@ DATASET:
     test_len: 3
 
 TRAIN:
-  max_epochs: 100
+  max_epochs: 1500
   log_interval: 10
   batch_size: 64
-  initial_lr: 0.01
+  initial_lr: 0.02
   OPTIMIZER:
     type: "ADAM"
 

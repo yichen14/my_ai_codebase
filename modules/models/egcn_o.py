@@ -1,4 +1,3 @@
-import utils as u
 import torch
 from torch.nn.parameter import Parameter
 import torch.nn as nn
@@ -22,7 +21,7 @@ class EGCN_O(torch.nn.Module):
         self.GRCU_layers = []
         self.params = nn.ParameterList()
         for i in range(1,len(feats)):
-            GRCU_args = u.Namespace({'in_feats' : feats[i-1],
+            GRCU_args = Namespace({'in_feats' : feats[i-1],
                                      'out_feats': feats[i],
                                      'activation': activation})
 
@@ -34,7 +33,7 @@ class EGCN_O(torch.nn.Module):
     def parameters(self):
         return self.params
 
-    def forward(self, A_list, Nodes_list, edge_feats, nodes_mask_list):
+    def forward(self,A_list, Nodes_list,nodes_mask_list):
         node_feats= Nodes_list[-1]
 
         for unit in self.GRCU_layers:
@@ -42,7 +41,7 @@ class EGCN_O(torch.nn.Module):
 
         out = Nodes_list[-1]
         if self.skipfeats:
-            out = torch.cat((out,node_feats), dim=1)   # use node_feats.to_dense() if 2hot encoded input
+            out = torch.cat((out,node_feats), dim=1)   # use node_feats.to_dense() if 2hot encoded input 
         return out
 
 
@@ -50,7 +49,7 @@ class GRCU(torch.nn.Module):
     def __init__(self,args):
         super().__init__()
         self.args = args
-        cell_args = u.Namespace({})
+        cell_args = Namespace({})
         cell_args.rows = args.in_feats
         cell_args.cols = args.out_feats
 
@@ -93,7 +92,7 @@ class mat_GRU_cell(torch.nn.Module):
         self.htilda = mat_GRU_gate(args.rows,
                                    args.cols,
                                    torch.nn.Tanh())
-
+        
         self.choose_topk = TopK(feats = args.rows,
                                 k = args.cols)
 
@@ -111,7 +110,7 @@ class mat_GRU_cell(torch.nn.Module):
 
         return new_Q
 
-
+        
 
 class mat_GRU_gate(torch.nn.Module):
     def __init__(self,rows,cols,activation):
@@ -143,7 +142,7 @@ class TopK(torch.nn.Module):
         super().__init__()
         self.scorer = Parameter(torch.Tensor(feats,1))
         self.reset_param(self.scorer)
-
+        
         self.k = k
 
     def reset_param(self,t):
@@ -159,8 +158,8 @@ class TopK(torch.nn.Module):
         topk_indices = topk_indices[vals > -float("Inf")]
 
         if topk_indices.size(0) < self.k:
-            topk_indices = u.pad_with_last_val(topk_indices,self.k)
-
+            topk_indices = pad_with_last_val(topk_indices,self.k)
+            
         tanh = torch.nn.Tanh()
 
         if isinstance(node_embs, torch.sparse.FloatTensor) or \
@@ -256,3 +255,22 @@ class LP_EGCN_o(EGCN_O):
             )   
         return tot_loss.true_divide(T)
 
+    def score_fn(self, ts, fs, zs):
+        tscores = []
+        fscores = []
+
+        T = len(ts)
+
+        for i in range(T):
+            t_src, t_dst = ts[i]
+            fs[i] = fs[i].T
+            f_src, f_dst = fs[i]
+            z = zs[i]
+
+            tscores.append(self.decode(t_src, t_dst, z))
+            fscores.append(self.decode(f_src, f_dst, z))
+
+        tscores = torch.cat(tscores, dim=0)
+        fscores = torch.cat(fscores, dim=0)
+
+        return tscores, fscores
