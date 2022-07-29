@@ -11,6 +11,8 @@ import attack
 import os
 import logging
 from scipy.sparse import csr_matrix
+from tqdm import tqdm, trange
+import logging
 import networkx as nx
 
 def sparse_to_tuple(sparse_mx):
@@ -34,12 +36,13 @@ def to_undirect(sparse_matrices):
     dense_matrices = csr_matrix_to_tensor(sparse_matrices)
     undirect_dense_list = []
     undirect_sparse_list = []
-    N = dense_matrices[0].shape[0]
+    # N = dense_matrices[0].shape[0]
     for matrix in dense_matrices:
-        for i in range(N):
-            for j in range(N):
-                if matrix[i, j] == 1:
-                    matrix[j, i] = 1
+        # for i in range(N):
+        #     for j in range(N):
+        #         if matrix[i, j] == 1:
+        #             matrix[j, i] = 1
+        matrix = torch.logical_or(matrix, matrix.T)
         undirect_dense_list.append(matrix)
         undirect_sparse_list.append(csr_matrix(np.array(matrix.tolist())))
     return undirect_dense_list, undirect_sparse_list
@@ -93,53 +96,89 @@ class temporal_graph(torch_geometric.data.Dataset):
         self.data = [Data(x=self.feat[i], edge_index = self.adj_time_list[i]) for i in range(self.time_step)]
         self.pos_edges_l, self.neg_edges_l = self.mask_edges_prd()
         self.prepare_edge_list()
+
         if self.cfg.task == "static_link_prediction":
+            # if the model is GAE or any static graph neural network, merged dataset for static gnn training
             self.prepare_static_dataset()
+
+    def load_from_data_dict(self, data_dict):
+        self.adj_dense_merge_train = data_dict['adj_dense_merge_train']
+        self.adj_dense_merge_test = data_dict['adj_dense_merge_test']
+        self.adj_dense_merge_val = data_dict['adj_dense_merge_val']
+        self.adj_sparse_merge_train = data_dict['adj_sparse_merge_train']
+        self.adj_sparse_merge_test = data_dict['adj_sparse_merge_test']
+        self.adj_sparse_merge_val = data_dict['adj_sparse_merge_val']
+        self.feat_static_train = data_dict['feat_static_train']
+        self.feat_static_test = data_dict['feat_static_test']
+        self.feat_static_val = data_dict['feat_static_val']
+        self.edge_idx_train = data_dict['edge_idx_train']
+        self.edge_idx_test = data_dict['edge_idx_test']
+        self.edge_idx_val = data_dict['edge_idx_val']
+        self.pos_edges_l_static_train = data_dict['pos_edges_l_static_train']
+        self.pos_edges_l_static_test = data_dict['pos_edges_l_static_test']
+        self.pos_edges_l_static_val = data_dict['pos_edges_l_static_val']
 
     def prepare_static_dataset(self):
 
         # TODO: load data from local
-
-        length = len(self.adj_time_list)
+        data_name = self.cfg.DATASET.dataset
+        static_data_path = self.cfg.DATASET.STATIC.merged_data_path
+        ptb_rate = self.cfg.ATTACK.ptb_rate
         val_len = self.cfg.DATASET.TEMPORAL.val_len
         test_len = self.cfg.DATASET.TEMPORAL.test_len
+        data_path = os.path.join(get_dataset_root(), static_data_path, data_name)
+        if not os.path.exists(data_path):
+            os.mkdir(data_path)
 
-        self.adj_dense_merge_train = merge_graph(self.adj_orig_dense_list[:length-test_len])
-        self.adj_sparse_merge_train = csr_matrix(self.adj_dense_merge_train.numpy())
-        
-        self.adj_dense_merge_test = merge_graph(self.adj_orig_dense_list[length-test_len+val_len:])
-        self.adj_sparse_merge_test = csr_matrix(np.array(self.adj_dense_merge_test.tolist()))
+        pickle_path = os.path.join(data_path, "merged_data_ptb_{}_test_{}.pickle".format(ptb_rate,test_len))
 
-        self.adj_dense_merge_val = merge_graph(self.adj_orig_dense_list[length-test_len:length-test_len+val_len])
-        self.adj_sparse_merge_val = csr_matrix(np.array(self.adj_dense_merge_val.tolist()))
+        data_dict={}
 
-        def get_pos_neg_edge_lst(dense_matrix):
-            pos_edge_lst = []
-            neg_edge_lst = []
-            for i in range(dense_matrix.shape[0]):
-                for j in range(dense_matrix.shape[0]):
-                    if dense_matrix[i, j] == 0.0 and [j, i] not in neg_edge_lst:
-                        neg_edge_lst.append([i, j])
-                    elif dense_matrix[i, j] == 1.0 and [j, i] not in pos_edge_lst:
-                        pos_edge_lst.append([i, j])
-            return pos_edge_lst, neg_edge_lst
+        if os.path.exists(pickle_path):
+            logging.info("Load static data from merged_data_ptb_{}_test_{}.pickle".format(ptb_rate,test_len))
+            with open(pickle_path, 'rb') as handle:
+                data_dict = pickle.load(handle,encoding="latin1")
+        else:
+            logging.info("Start merging dataset: {}".format(data_name))
+            length = len(self.adj_time_list)
 
-        self.pos_edges_l_static_train, self.neg_edges_l_static_train  = get_pos_neg_edge_lst(self.adj_dense_merge_train)
-        self.pos_edges_l_static_test, self.neg_edges_l_static_test = get_pos_neg_edge_lst(self.adj_dense_merge_test)
-        self.pos_edges_l_static_val, self.neg_edges_l_static_val = get_pos_neg_edge_lst(self.adj_dense_merge_val)
+            data_dict['adj_dense_merge_train'] = merge_graph(self.adj_orig_dense_list[:length-test_len])
+            data_dict['adj_sparse_merge_train'] = csr_matrix(data_dict['adj_dense_merge_train'].numpy())
+            
+            data_dict['adj_dense_merge_test']= merge_graph(self.adj_orig_dense_list[length-test_len+val_len:])
+            data_dict['adj_sparse_merge_test'] = csr_matrix(np.array(data_dict['adj_dense_merge_test'].tolist()))
 
-        self.feat_static_train = merge_graph(self.feat[:length-test_len])
-        self.feat_static_test = merge_graph(self.feat[length-test_len+val_len:])
-        self.feat_static_val = merge_graph(self.feat[length-test_len:length-test_len+val_len])
+            data_dict['adj_dense_merge_val'] = merge_graph(self.adj_orig_dense_list[length-test_len:length-test_len+val_len])
+            data_dict['adj_sparse_merge_val']= csr_matrix(np.array(data_dict['adj_dense_merge_val'].tolist()))
 
-        self.edge_idx_train = torch.tensor(np.transpose(self.pos_edges_l_static_train), dtype=torch.long)
-        self.edge_idx_test = torch.tensor(np.transpose(self.pos_edges_l_static_test), dtype=torch.long)
-        self.edge_idx_val = torch.tensor(np.transpose(self.pos_edges_l_static_val), dtype=torch.long)
-        
-        self.pos_edges_l_static_train, self.neg_edges_l_static_train  = torch.tensor(self.pos_edges_l_static_train).T, torch.tensor(self.neg_edges_l_static_train).T
-        self.pos_edges_l_static_test, self.neg_edges_l_static_test  = torch.tensor(self.pos_edges_l_static_test).T, torch.tensor(self.neg_edges_l_static_test).T
-        self.pos_edges_l_static_val, self.neg_edges_l_static_val  = torch.tensor(self.pos_edges_l_static_val).T, torch.tensor(self.neg_edges_l_static_val).T
+            def get_pos_neg_edge_lst(dense_matrix):
+                pos_edge_lst = []
+                for i in trange(dense_matrix.shape[0]):
+                    for j in range(dense_matrix.shape[0]):
+                        if dense_matrix[i, j] == 1.0 and [j, i] not in pos_edge_lst:
+                            pos_edge_lst.append([i, j])
+                return pos_edge_lst
 
+            pos_edges_l_static_train = get_pos_neg_edge_lst(data_dict['adj_dense_merge_train'])
+            pos_edges_l_static_test = get_pos_neg_edge_lst(data_dict['adj_dense_merge_test'])
+            pos_edges_l_static_val = get_pos_neg_edge_lst(data_dict['adj_dense_merge_val'])
+
+            data_dict['feat_static_train'] = merge_graph(self.feat[:length-test_len])
+            data_dict['feat_static_test'] = merge_graph(self.feat[length-test_len+val_len:])
+            data_dict['feat_static_val'] = merge_graph(self.feat[length-test_len:length-test_len+val_len])
+
+            data_dict['edge_idx_train'] = torch.tensor(np.transpose(pos_edges_l_static_train), dtype=torch.long)
+            data_dict['edge_idx_test'] = torch.tensor(np.transpose(pos_edges_l_static_test), dtype=torch.long)
+            data_dict['edge_idx_val'] = torch.tensor(np.transpose(pos_edges_l_static_val), dtype=torch.long)
+            
+            data_dict['pos_edges_l_static_train'] = torch.tensor(pos_edges_l_static_train).T
+            data_dict['pos_edges_l_static_test'] = torch.tensor(pos_edges_l_static_test).T
+            data_dict['pos_edges_l_static_val'] = torch.tensor(pos_edges_l_static_val).T
+
+            with open(pickle_path, 'ab') as handle:
+                pickle.dump(data_dict, handle)
+
+        self.load_from_data_dict(data_dict)
 
     def prepare_edge_list(self):
         edge_list = self.mask_edges_det()
@@ -147,9 +186,6 @@ class temporal_graph(torch_geometric.data.Dataset):
         for i in range(len(edge_list)):
             self.edge_idx_list.append(torch.tensor(np.transpose(edge_list[i]), dtype=torch.long))
             
-            
-    
-    # def get_static_edges_lst(self):
         
 
     def mask_edges_det(self):
