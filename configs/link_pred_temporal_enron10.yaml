@@ -15,13 +15,13 @@ TRAIN:
   max_epochs: 1500
   log_interval: 10
   batch_size: 64
-  initial_lr: 0.02
+  initial_lr: 0.01
   OPTIMIZER:
     type: "ADAM"
 
 ATTACK:
   method: "random"
-  ptb_rate: 0.5
+  ptb_rate: 0.0
   attack_data_path: "attack_data"
   new_attack: False
 
