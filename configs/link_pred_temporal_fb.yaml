@@ -3,7 +3,7 @@ task: "temporal_link_prediction"
 seed: 321
 
 MODEL:
-  model: "EULER"
+  model: "EGCNH"
 
 DATASET:
   dataset: "fb"
@@ -15,7 +15,7 @@ TRAIN:
   max_epochs: 1500
   log_interval: 10
   batch_size: 64
-  initial_lr: 0.02
+  initial_lr: 0.01
   OPTIMIZER:
     type: "ADAM"
 
