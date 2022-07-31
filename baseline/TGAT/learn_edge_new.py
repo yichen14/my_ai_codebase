@@ -26,9 +26,9 @@ parser.add_argument('--bs', type=int, default=64, help='batch_size') #original d
 parser.add_argument('--prefix', type=str, default='', help='prefix to name the checkpoints')
 parser.add_argument('--n_degree', type=int, default=20, help='number of neighbors to sample')
 parser.add_argument('--n_head', type=int, default=2, help='number of heads used in attention layer')
-parser.add_argument('--n_epoch', type=int, default=10, help='number of epochs') # original default: 50
+parser.add_argument('--n_epoch', type=int, default=1500, help='number of epochs') # original default: 50
 parser.add_argument('--n_layer', type=int, default=2, help='number of network layers')
-parser.add_argument('--lr', type=float, default=0.001, help='learning rate') # original default: 0.0001
+parser.add_argument('--lr', type=float, default=0.01, help='learning rate') # original default: 0.0001
 parser.add_argument('--drop_out', type=float, default=0.1, help='dropout probability')
 parser.add_argument('--gpu', type=int, default=0, help='idx for the gpu to use')
 parser.add_argument('--node_dim', type=int, default=100, help='Dimentions of the node embedding')
@@ -64,8 +64,8 @@ NODE_DIM = args.node_dim
 TIME_DIM = args.time_dim
 
 
-# MODEL_SAVE_PATH = f'./saved_models/{args.prefix}-{args.agg_method}-{args.attn_mode}-{args.data}.pth'
-#get_checkpoint_path = lambda epoch: f'./saved_checkpoints/{args.prefix}-{args.agg_method}-{args.attn_mode}-{args.data}-{epoch}.pth'
+MODEL_SAVE_PATH = f'./saved_models/{args.prefix}-{args.agg_method}-{args.attn_mode}-{args.data}.pth'
+get_checkpoint_path = lambda epoch: f'./saved_checkpoints/{args.prefix}-{args.agg_method}-{args.attn_mode}-{args.data}-{epoch}.pth'
 
 ### set up logger
 logging.basicConfig(level=logging.INFO)
@@ -284,14 +284,21 @@ for epoch in range(NUM_EPOCH):
     val_acc, val_ap, val_f1, val_auc = eval_one_epoch('val for old nodes', tgan, val_rand_sampler, val_src_l, 
     val_dst_l, val_ts_l)
 
-    nn_val_acc, nn_val_ap, nn_val_f1, nn_val_auc = eval_one_epoch('val for new nodes', tgan, val_rand_sampler, nn_val_src_l, 
-    nn_val_dst_l, nn_val_ts_l)
+    # nn_val_acc, nn_val_ap, nn_val_f1, nn_val_auc = eval_one_epoch('val for new nodes', tgan, val_rand_sampler, nn_val_src_l, 
+    # nn_val_dst_l, nn_val_ts_l)
         
     logger.info('epoch: {}:'.format(epoch))
     logger.info('Epoch mean loss: {}'.format(np.mean(m_loss)))
-    logger.info('train acc: {}, val acc: {}, new node val acc: {}'.format(np.mean(acc), val_acc, nn_val_acc))
-    logger.info('train auc: {}, val auc: {}, new node val auc: {}'.format(np.mean(auc), val_auc, nn_val_auc))
-    logger.info('train ap: {}, val ap: {}, new node val ap: {}'.format(np.mean(ap), val_ap, nn_val_ap))
+    # logger.info('train acc: {}, val acc: {}, new node val acc: {}'.format(np.mean(acc), val_acc, nn_val_acc))
+    # logger.info('train auc: {}, val auc: {}, new node val auc: {}'.format(np.mean(auc), val_auc, nn_val_auc))
+    # logger.info('train ap: {}, val ap: {}, new node val ap: {}'.format(np.mean(ap), val_ap, nn_val_ap))
+    # print(acc)
+    # print(auc)
+    # print(ap)
+    # exit()
+    logger.info('train acc: {}, val acc: {}'.format(np.mean(acc), val_acc))
+    logger.info('train auc: {}, val auc: {}'.format(np.mean(auc), val_auc))
+    logger.info('train ap: {}, val ap: {}'.format(np.mean(ap), val_ap))
     # logger.info('train f1: {}, val f1: {}, new node val f1: {}'.format(np.mean(f1), val_f1, nn_val_f1))
 
     if early_stopper.early_stop_check(val_ap):
@@ -308,14 +315,12 @@ for epoch in range(NUM_EPOCH):
 
 # testing phase use all information
 tgan.ngh_finder = full_ngh_finder
-test_acc, test_ap, test_f1, test_auc = eval_one_epoch('test for old nodes', tgan, test_rand_sampler, test_src_l, 
-test_dst_l, test_ts_l)
+test_acc, test_ap, test_f1, test_auc = eval_one_epoch('test for old nodes', tgan, test_rand_sampler, test_src_l, test_dst_l, test_ts_l)
 
-nn_test_acc, nn_test_ap, nn_test_f1, nn_test_auc = eval_one_epoch('test for new nodes', tgan, nn_test_rand_sampler, nn_test_src_l, 
-nn_test_dst_l, nn_test_ts_l)
+# nn_test_acc, nn_test_ap, nn_test_f1, nn_test_auc = eval_one_epoch('test for new nodes', tgan, nn_test_rand_sampler, nn_test_src_l, nn_test_dst_l, nn_test_ts_l)
 
 logger.info('Test statistics: Old nodes -- acc: {}, auc: {}, ap: {}'.format(test_acc, test_auc, test_ap))
-logger.info('Test statistics: New nodes -- acc: {}, auc: {}, ap: {}'.format(nn_test_acc, nn_test_auc, nn_test_ap))
+# logger.info('Test statistics: New nodes -- acc: {}, auc: {}, ap: {}'.format(nn_test_acc, nn_test_auc, nn_test_ap))
 
 logger.info('Saving TGAN model')
 torch.save(tgan.state_dict(), MODEL_SAVE_PATH)
