@@ -20,14 +20,14 @@ TRAIN:
     type: "ADAM"
 
 ATTACK:
-  method: "random"
-  ptb_rate: 0.0
+  method: "node"
+  ptb_rate: 0.5
   attack_data_path: "attack_data"
-  new_attack: False
+  new_attack: True
 
 TASK_SPECIFIC:
   GEOMETRIC:
-    num_features: 4
+    num_features: 315
     num_nodes: 20
     inner_prod: False
     filter_size: 2

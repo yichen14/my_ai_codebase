@@ -42,7 +42,8 @@ def to_undirect(sparse_matrices):
         #     for j in range(N):
         #         if matrix[i, j] == 1:
         #             matrix[j, i] = 1
-        matrix = torch.logical_or(matrix, matrix.T)
+        matrix = torch.logical_or(matrix, matrix.T).float()
+        matrix = torch.logical_or(matrix, torch.eye(len(matrix))).float()
         undirect_dense_list.append(matrix)
         undirect_sparse_list.append(csr_matrix(np.array(matrix.tolist())))
     return undirect_dense_list, undirect_sparse_list
@@ -72,6 +73,10 @@ class temporal_graph(torch_geometric.data.Dataset):
         self.adj_orig_dense_list, self.adj_time_list = to_undirect(self.adj_time_list) # to undirect
 
         # Attack 
+        # self.adj_time_list[0].tolil()
+        # print(self.adj_time_list[0].tolil().rows)
+        # print(map(np.random.choice, self.adj_time_list[0].tolil().rows))
+        # exit()
         if attack_flag and attack_func is not None:
             self.adj_time_list = attack_func(self.cfg, self.adj_time_list, self.device)
         

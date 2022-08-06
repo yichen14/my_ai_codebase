@@ -1,3 +1,4 @@
+from itertools import count
 import numpy as np
 import torch
 from sklearn.metrics import roc_auc_score
@@ -57,24 +58,6 @@ class Evaluation():
             ap = average_precision_score(labels, score)
             auc = roc_auc_score(labels, score)
             
-            # adj_rec = np.dot(emb, emb.T)
-            # adj_orig_t = adj_orig_dense_list[i]
-            # preds = []
-            # pos = []
-            # for e in edges_pos[i]:
-            #     preds.append(expit(adj_rec[e[0], e[1]]))
-            #     pos.append(adj_orig_t[e[0], e[1]])
-                
-            # preds_neg = []
-            # neg = []
-            # for e in edges_neg[i]:
-            #     preds_neg.append(expit(adj_rec[e[0], e[1]]))
-            #     neg.append(adj_orig_t[e[0], e[1]])
-            
-            # preds_all = np.hstack([preds, preds_neg])
-            # labels_all = np.hstack([np.ones(len(preds)), np.zeros(len(preds_neg))])
-            # ap = average_precision_score(labels_all, preds_all)
-            # auc = roc_auc_score(labels_all, preds_all)
             if i < self.val_len:
                 # validation performance:
                 val_auc_scores.append(auc)

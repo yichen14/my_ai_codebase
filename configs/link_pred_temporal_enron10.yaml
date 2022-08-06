@@ -3,7 +3,7 @@ task: "temporal_link_prediction"
 seed: 321
 
 MODEL:
-  model: "EULER"
+  model: "EGCNO"
 
 DATASET:
   dataset: "enron10"
@@ -15,7 +15,7 @@ TRAIN:
   max_epochs: 1500
   log_interval: 10
   batch_size: 64
-  initial_lr: 0.02
+  initial_lr: 0.01
   OPTIMIZER:
     type: "ADAM"
 
@@ -27,8 +27,8 @@ ATTACK:
 
 TASK_SPECIFIC:
   GEOMETRIC:
-    num_features: 4
-    num_nodes: 20
+    num_features: 184
+    num_nodes: 184
     inner_prod: False
     filter_size: 2
 

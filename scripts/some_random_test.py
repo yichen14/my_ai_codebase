@@ -51,3 +51,17 @@ import torch
 #                    [0,0,0,0,0]]))
 
 # print(torch.logical_or(matrix, matrix.T))
+
+from deeprobust.graph.data import Dataset
+from deeprobust.graph.defense import GCN
+from deeprobust.graph.global_attack import MetaApprox
+from deeprobust.graph.utils import preprocess
+from deeprobust.graph.global_attack import NodeEmbeddingAttack
+data = Dataset(root='/tmp/', name='cora')
+adj, features, labels = data.adj, data.features, data.labels
+adj, features, labels = preprocess(adj, features, labels, preprocess_adj=False)
+
+print(features.size(), labels)
+
+# print(model.modified_adj)
+
