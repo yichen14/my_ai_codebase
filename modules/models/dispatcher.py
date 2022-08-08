@@ -19,7 +19,7 @@ def dispatcher(cfg):
         from models.GCN import GCN as GCN_cls
         return GCN_cls
 
-    # Temporal Network 
+    # Discrete Temporal Network 
     if model_name == "VGRNN":
         from .VGRNN import VGRNN as RGCN_cls
         return RGCN_cls
@@ -28,9 +28,15 @@ def dispatcher(cfg):
         return RGCN_cls
     if model_name == "EGCNO":
         from .egcn_o import LP_EGCN_o as RGCN_cls
+        return RGCN_cls
     if model_name == "DYSAT":
         from .dysat import DySAT as RGCN_cls
         return RGCN_cls
     if model_name == "EULER":
         from .euler import EulerGCN as RGCN_cls
+        return RGCN_cls
+    
+    # Continuous Temporal Network
+    if model_name == "TGAT":
+        from .tgat import TGAN as RGCN_cls
         return RGCN_cls

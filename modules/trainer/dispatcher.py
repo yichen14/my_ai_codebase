@@ -17,6 +17,9 @@ def dispatcher(cfg):
         elif model_name == "DYSAT":
             from .dysat_trainer import dysat_trainer as dysat_trainer_fn
             return dysat_trainer_fn
+        elif model_name == "TGAT":
+            from .tgat_trainer import tgat_trainer as tgat_trainer_fn
+            return tgat_trainer_fn
         else:
             from .temporal_graph_trainer import temp_graph_trainer as temp_graph_trainer_fn
             return temp_graph_trainer_fn

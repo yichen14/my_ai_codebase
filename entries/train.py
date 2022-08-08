@@ -33,6 +33,9 @@ def setup(cfg, args):
         model_cls = models.dispatcher(cfg)
         test_len = cfg.DATASET.TEMPORAL.test_len
         model = model_cls(data.feat_dim, data.time_step - test_len).to(device)
+    elif cfg.MODEL.model == "TGAT":
+        model_cls = models.dispatcher(cfg)
+        model = model_cls(data.train_ngh_finder, data.n_feat, data.e_feat).to(device)
     else:
         model_cls = models.dispatcher(cfg)
         model = model_cls(data.feat_dim, device).to(device)
