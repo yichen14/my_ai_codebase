@@ -21,5 +21,6 @@ def dispatcher(cfg, device = "cuda:0"):
             from .continuous_temporal_graph import continuous_temporal_graph as temporal_graph_dataloader
         else:
             from .temporal_graph import temporal_graph as temporal_graph_dataloader
+            return temporal_graph_dataloader
     else:
         raise NotImplementedError

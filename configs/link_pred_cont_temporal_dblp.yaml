@@ -13,7 +13,7 @@ DATASET:
     test_len: 2
 
 TRAIN:
-  max_epochs: 30
+  max_epochs: 50
   log_interval: 0
   batch_size: 32
   initial_lr: 0.0001
