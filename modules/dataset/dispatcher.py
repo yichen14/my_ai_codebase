@@ -5,6 +5,7 @@ from torch_geometric.datasets import Planetoid
 
 def dispatcher(cfg, device = "cuda:0"):
     dataset_name = cfg.DATASET.dataset
+    model = cfg.MODEL.model
     assert dataset_name != "none"
     if dataset_name == "cora":
         from torch_geometric.datasets import Planetoid
@@ -16,7 +17,10 @@ def dispatcher(cfg, device = "cuda:0"):
         loader = ChickenpoxDatasetLoader()
         return loader.get_dataset()
     if dataset_name in ["dblp", "enron10", "fb", "reddit", "wikipedia"]:
-        from .temporal_graph import temporal_graph as temporal_graph_dataloader
+        if model in ["TGAT"]:
+            from .continuous_temporal_graph import continuous_temporal_graph as temporal_graph_dataloader
+        else:
+            from .temporal_graph import temporal_graph as temporal_graph_dataloader
         return temporal_graph_dataloader(cfg, device)
     else:
         raise NotImplementedError

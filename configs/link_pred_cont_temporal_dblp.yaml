@@ -1,0 +1,38 @@
+name: "link_pred_temporal"
+task: "temporal_link_prediction"
+seed: 321
+
+MODEL:
+  model: "TGAT"
+
+DATASET:
+  dataset: "dblp"
+  TEMPORAL:
+    use_feat: True
+    val_len: 1
+    test_len: 2
+
+TRAIN:
+  max_epochs: 50
+  log_interval: 0
+  batch_size: 32
+  initial_lr: 0.0001
+  OPTIMIZER:
+    type: "ADAM"
+
+ATTACK:
+  method: "random"
+  ptb_rate: 0.0
+  attack_data_path: "attack_data"
+  new_attack: False
+
+TASK_SPECIFIC:
+  GEOMETRIC:
+    num_features: 4
+    num_nodes: 20
+    inner_prod: False
+    filter_size: 2
+
+LOGGING:
+  log_file: "none"
+  model_file: "none"
