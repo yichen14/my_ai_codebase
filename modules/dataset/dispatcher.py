@@ -15,7 +15,7 @@ def dispatcher(cfg, device = "cuda:0"):
         from torch_geometric_temporal.dataset import ChickenpoxDatasetLoader
         loader = ChickenpoxDatasetLoader()
         return loader.get_dataset()
-    if dataset_name in ["dblp", "enron10", "fb"]:
+    if dataset_name in ["dblp", "enron10", "fb", "reddit", "wikipedia"]:
         from .temporal_graph import temporal_graph as temporal_graph_dataloader
         return temporal_graph_dataloader(cfg, device)
     else:

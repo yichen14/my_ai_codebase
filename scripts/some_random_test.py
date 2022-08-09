@@ -60,8 +60,9 @@ from deeprobust.graph.global_attack import NodeEmbeddingAttack
 data = Dataset(root='/tmp/', name='cora')
 adj, features, labels = data.adj, data.features, data.labels
 adj, features, labels = preprocess(adj, features, labels, preprocess_adj=False)
-
-print(features.size(), labels)
-
+idx_train, idx_val, idx_test = data.idx_train, data.idx_val, data.idx_test
+print(idx_train.shape)
+idx_unlabeled = np.union1d(idx_val, idx_test)
+print(idx_unlabeled.shape)
 # print(model.modified_adj)
 

@@ -64,12 +64,17 @@ def main():
     update_config_from_yaml(cfg, args)
     update_cfg_from_args(cfg, args)
     test_auc, test_ap = [], []
+
     save_dir = './trained_model/{}_{}_{}_{}_lr_{}/'.format(
         cfg.DATASET.dataset, cfg.MODEL.model, cfg.ATTACK.method, cfg.ATTACK.ptb_rate, cfg.TRAIN.initial_lr)
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
     args.log_file = os.path.join(save_dir, 'log.txt')
-    args.model_file = os.path.join(save_dir, 'model.pt')
+    args.model_file = os.path.join(save_dir, 'model.pt')   
+
+    logging.basicConfig(level=logging.INFO, handlers=[logging.FileHandler(args.log_file), logging.StreamHandler()])
+    logging.info("---------------------Experiment Info---------------------")
+    logging.info("Dataset: {}, Learning Rate: {}, Model: {}, Attack Method: {}, ptb_rate: {}".format(cfg.DATASET.dataset, cfg.TRAIN.initial_lr, cfg.MODEL.model, cfg.ATTACK.method, cfg.ATTACK.ptb_rate))
 
     for i in range(1, args.runs+1):
         update_config_from_yaml(cfg, args)

@@ -20,10 +20,10 @@ TRAIN:
     type: "ADAM"
 
 ATTACK:
-  method: "node"
-  ptb_rate: 0.5
+  method: "meta"
+  ptb_rate: 0.1
   attack_data_path: "attack_data"
-  new_attack: True
+  new_attack: False
 
 TASK_SPECIFIC:
   GEOMETRIC:
@@ -33,5 +33,5 @@ TASK_SPECIFIC:
     filter_size: 2
 
 LOGGING:
-  log_file: "none"
-  model_file: "none"
+  log_file: "log.txt"
+  model_file: "model.pt"

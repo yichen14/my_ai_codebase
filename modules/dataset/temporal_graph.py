@@ -14,6 +14,7 @@ from scipy.sparse import csr_matrix
 from tqdm import tqdm, trange
 import logging
 import networkx as nx
+import datetime
 
 def sparse_to_tuple(sparse_mx):
     if not sp.isspmatrix_coo(sparse_mx):
@@ -70,22 +71,24 @@ class temporal_graph(torch_geometric.data.Dataset):
         with open(adj_time_list_path, 'rb') as handle:
             self.adj_time_list = pickle.load(handle,encoding="latin1")
 
-        self.adj_orig_dense_list, self.adj_time_list = to_undirect(self.adj_time_list) # to undirect
+        # self.adj_orig_dense_list, self.adj_time_list = to_undirect(self.adj_time_list) # to undirect
 
         # Attack 
         # self.adj_time_list[0].tolil()
         # print(self.adj_time_list[0].tolil().rows)
         # print(map(np.random.choice, self.adj_time_list[0].tolil().rows))
         # exit()
+        logging.info("Start to attack graphs, time:{}".format(datetime.datetime.now()))
         if attack_flag and attack_func is not None:
             self.adj_time_list = attack_func(self.cfg, self.adj_time_list, self.device)
         
         # For DySAT
         # Conver sparse matrix to MultiGraph
-        self.graphs = []
-        for i in range(len(self.adj_time_list)):
-            G = nx.from_scipy_sparse_matrix(self.adj_time_list[i], create_using=nx.MultiGraph)
-            self.graphs.append(G)
+        if self.cfg.MODEL.model == "dysat":
+            self.graphs = []
+            for i in range(len(self.adj_time_list)):
+                G = nx.from_scipy_sparse_matrix(self.adj_time_list[i], create_using=nx.MultiGraph)
+                self.graphs.append(G)
 
         self.time_step = len(self.adj_time_list)
         self.adj_orig_dense_list = csr_matrix_to_tensor(self.adj_time_list)
@@ -99,9 +102,10 @@ class temporal_graph(torch_geometric.data.Dataset):
         self.feat_dim = self.feat[0].shape[1]
 
         self.data = [Data(x=self.feat[i], edge_index = self.adj_time_list[i]) for i in range(self.time_step)]
+        logging.info("Start to prepare edge list, time:{}".format(datetime.datetime.now()))
         self.pos_edges_l, self.neg_edges_l = self.mask_edges_prd()
         self.prepare_edge_list()
-
+        logging.info("Finish to load temporal graphs, time:{}".format(datetime.datetime.now()))
         if self.cfg.task == "static_link_prediction":
             # if the model is GAE or any static graph neural network, merged dataset for static gnn training
             self.prepare_static_dataset()
@@ -131,16 +135,17 @@ class temporal_graph(torch_geometric.data.Dataset):
         ptb_rate = self.cfg.ATTACK.ptb_rate
         val_len = self.cfg.DATASET.TEMPORAL.val_len
         test_len = self.cfg.DATASET.TEMPORAL.test_len
+        attack_method = self.cfg.ATTACK.method
         data_path = os.path.join(get_dataset_root(), static_data_path, data_name)
         if not os.path.exists(data_path):
             os.mkdir(data_path)
 
-        pickle_path = os.path.join(data_path, "merged_data_ptb_{}_test_{}.pickle".format(ptb_rate,test_len))
+        pickle_path = os.path.join(data_path, "merged_data_ptb_{}_test_{}_{}.pickle".format(ptb_rate,test_len, attack_method))
 
         data_dict={}
 
         if os.path.exists(pickle_path):
-            logging.info("Load static data from merged_data_ptb_{}_test_{}.pickle".format(ptb_rate,test_len))
+            logging.info("Load static data from merged_data_ptb_{}_test_{}_{}.pickle".format(ptb_rate, test_len, attack_method))
             with open(pickle_path, 'rb') as handle:
                 data_dict = pickle.load(handle,encoding="latin1")
         else:

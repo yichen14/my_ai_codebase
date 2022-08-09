@@ -96,6 +96,7 @@ class dysat_trainer(base_trainer):
         self.cal_metric = Evaluation(self.cfg.DATASET.TEMPORAL.val_len, self.cfg.DATASET.TEMPORAL.test_len)
         self.model.to(self.device)
         self.test_len = self.cfg.DATASET.TEMPORAL.test_len
+        self.batch_size = self.cfg.TRAIN.batch_size
 
     def build_dataloader(self):
         graphs = self.temporal_data.graphs
@@ -109,7 +110,8 @@ class dysat_trainer(base_trainer):
         # build dataloader
         dataset = MyDataset(graphs, feats, adj_time_list, context_pairs_train, time_steps)
         dataloader = DataLoader(dataset,
-                                batch_size=self.temporal_data.num_nodes,
+                                # batch_size=self.temporal_data.num_nodes,
+                                batch_size=self.batch_size,
                                 shuffle=True,
                                 num_workers=10,
                                 collate_fn=MyDataset.collate_fn)
@@ -153,8 +155,8 @@ class dysat_trainer(base_trainer):
             
             if epoch % self.log_epoch == 0:
                 # prepare testing input:
-                # graphs_testing = [feed_dict["graphs"][train_end-1] for _ in range(train_end-train_start)]
-                graphs_testing = feed_dict["graphs"]
+                graphs_testing = [feed_dict["graphs"][train_end-1] for _ in range(train_end-train_start)] # Repeat graph (single-step prediction)
+                # graphs_testing = feed_dict["graphs"] # Repeat emb (multi-step prediction)
                 
                 self.inference(graphs_testing, adj_orig_dense_list[train_end:seq_end], 
                              pos_edges_l[train_end:seq_end], neg_edges_l[train_end:seq_end])
@@ -169,10 +171,13 @@ class dysat_trainer(base_trainer):
     @torch.no_grad()
     def inference(self, graphs, adj_orig_dense_list, pos_edges_l, neg_edges_l):
         self.model.eval()
-        emb = self.model(graphs)[:,-1,:] # The last snapshot
-        embs = [emb for _ in range(self.test_len)]
-        # emb = self.model(graphs)
-        # embs = [emb[:,i,:] for i in range(self.test_len)]
+        # Repeat emb (multi-step prediction)
+        # emb = self.model(graphs)[:,-1,:] # The last snapshot
+        # embs = [emb for _ in range(self.test_len)]
+        
+        # Repeat graph (single-step prediction)
+        emb = self.model(graphs)
+        embs = [emb[:,i,:] for i in range(self.test_len)]
         self.cal_metric.update(pos_edges_l
                                 , neg_edges_l
                                 , adj_orig_dense_list
