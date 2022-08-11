@@ -79,7 +79,7 @@ class temporal_graph(torch_geometric.data.Dataset):
         
         # For DySAT
         # Conver sparse matrix to MultiGraph
-        if self.cfg.MODEL.model == "dysat":
+        if self.cfg.MODEL.model == "DYSAT":
             self.graphs = []
             for i in range(len(self.adj_time_list)):
                 G = nx.from_scipy_sparse_matrix(self.adj_time_list[i], create_using=nx.MultiGraph)

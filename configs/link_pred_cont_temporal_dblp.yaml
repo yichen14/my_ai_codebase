@@ -14,7 +14,7 @@ DATASET:
 
 TRAIN:
   max_epochs: 50
-  log_interval: 0
+  log_epoch: 1
   batch_size: 32
   initial_lr: 0.0001
   OPTIMIZER:

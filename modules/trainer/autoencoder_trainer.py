@@ -70,28 +70,28 @@ class autoencoder_trainer(base_trainer):
 
         return self.cal_metric.best_test_metrics["AUC"], self.cal_metric.best_test_metrics["AP"]
 
-    def train_one(self, device):
-        self.model.train()
-        self.optimizer.zero_grad()
-        z = self.model.encode(self.train_data.x, self.train_data.edge_index)
-        loss = self.model.recon_loss(z, self.train_data.pos_edge_label_index)
-        if self.cfg.MODEL.model == "VGAE":
-            loss = loss + (1 / self.train_data.num_nodes) * self.model.kl_loss()
-        loss.backward()
-        self.optimizer.step()
-        return float(loss)
+    # def train_one(self, device):
+    #     self.model.train()
+    #     self.optimizer.zero_grad()
+    #     z = self.model.encode(self.train_data.x, self.train_data.edge_index)
+    #     loss = self.model.recon_loss(z, self.train_data.pos_edge_label_index)
+    #     if self.cfg.MODEL.model == "VGAE":
+    #         loss = loss + (1 / self.train_data.num_nodes) * self.model.kl_loss()
+    #     loss.backward()
+    #     self.optimizer.step()
+    #     return float(loss)
 
-    @torch.no_grad()
-    def val_one(self, device, type="val"):
-        self.model.eval()
+    # @torch.no_grad()
+    # def val_one(self, device, type="val"):
+    #     self.model.eval()
 
-        z = self.model.encode(self.static_data.feat_static_val.to(self.device), self.static_data.edge_idx_val.to(self.device))
+    #     z = self.model.encode(self.static_data.feat_static_val.to(self.device), self.static_data.edge_idx_val.to(self.device))
 
-        return self.model.test(z, self.static_data.pos_edges_l_static_val.to(self.device),self.static_data.neg_edges_l_static_val.to(self.device))
+    #     return self.model.test(z, self.static_data.pos_edges_l_static_val.to(self.device),self.static_data.neg_edges_l_static_val.to(self.device))
 
-    @torch.no_grad()
-    def test_one(self, device):
-        return self.val_one(device, type="test")
+    # @torch.no_grad()
+    # def test_one(self, device):
+    #     return self.val_one(device, type="test")
 
     @torch.no_grad()
     def inference(self, x_in, edge_idx_list, adj_orig_dense_list, pos_edges_l, neg_edges_l):
