@@ -7,6 +7,7 @@ from tqdm import tqdm
 import logging
 import torch.nn as nn
 from torch_geometric.utils import negative_sampling
+import numpy as np
 
 class egcn_trainer(base_trainer):
     def __init__(self, cfg, model, criterion, dataset_module, optimizer, device) -> None:
@@ -70,10 +71,28 @@ class egcn_trainer(base_trainer):
         return self.cal_metric.best_test_metrics["AUC"], self.cal_metric.best_test_metrics["AP"]
 
     @torch.no_grad()
-    def inference(self, x_in, adj_orig_dense_list_train, adj_orig_dense_list, pos_edges_l, neg_edges_l):
+    def inference(self, x_in, adj_orig_dense_list_train, adj_orig_dense_list, pos_edges_l, neg_edges_l, regressive = False):
         self.model.eval()
-        zs = self.model(adj_orig_dense_list_train, x_in)
+        if not regressive:
+            zs = self.model(adj_orig_dense_list_train, x_in)
+        else:
+            zs = []
+            x = x_in[0]
+            adj = adj_orig_dense_list_train[0]
+            z = self.model([adj], [x])
+            zs.append(z[0])
+            emb = zs[0].cpu().detach()
+            for i in range(1, self.cfg.DATASET.TEMPORAL.test_len):
+                emb = zs[i-1].cpu().detach()
+                adj_rec =torch.sigmoid(torch.tensor(np.dot(emb, emb.T))).to(self.device)
+                adj_rec[adj_rec>=0.5] = 1
+                adj_rec[adj_rec<0.5] = 0
+                z = self.model([adj_rec], [x_in[i]])
+                zs.append(z[0])
+        
+        assert len(zs) == self.cfg.DATASET.TEMPORAL.test_len
+
         self.cal_metric.update(pos_edges_l
-                                , neg_edges_l
-                                , adj_orig_dense_list
-                                , zs)
+                        , neg_edges_l
+                        , adj_orig_dense_list
+                        , zs)

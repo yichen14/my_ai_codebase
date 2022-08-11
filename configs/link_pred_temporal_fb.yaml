@@ -20,18 +20,18 @@ TRAIN:
     type: "ADAM"
 
 ATTACK:
-  method: "random"
+  method: "meta"
   ptb_rate: 0.0
   attack_data_path: "attack_data"
   new_attack: False
 
 TASK_SPECIFIC:
   GEOMETRIC:
-    num_features: 4
+    num_features: 663
     num_nodes: 20
     inner_prod: False
     filter_size: 2
 
 LOGGING:
-  log_file: "none"
-  model_file: "none"
+  log_file: "log.txt"
+  model_file: "model.pt"

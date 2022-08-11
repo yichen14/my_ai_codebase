@@ -43,7 +43,8 @@ def to_undirect(sparse_matrices):
         #     for j in range(N):
         #         if matrix[i, j] == 1:
         #             matrix[j, i] = 1
-        matrix = torch.logical_or(matrix, matrix.T)
+        matrix = torch.logical_or(matrix, matrix.T).float()
+        matrix = torch.logical_or(matrix, torch.eye(len(matrix))).float()
         undirect_dense_list.append(matrix)
         undirect_sparse_list.append(csr_matrix(np.array(matrix.tolist())))
     return undirect_dense_list, undirect_sparse_list
@@ -73,6 +74,10 @@ class temporal_graph(torch_geometric.data.Dataset):
         # self.adj_orig_dense_list, self.adj_time_list = to_undirect(self.adj_time_list) # to undirect
 
         # Attack 
+        # self.adj_time_list[0].tolil()
+        # print(self.adj_time_list[0].tolil().rows)
+        # print(map(np.random.choice, self.adj_time_list[0].tolil().rows))
+        # exit()
         logging.info("Start to attack graphs, time:{}".format(datetime.datetime.now()))
         if attack_flag and attack_func is not None:
             self.adj_time_list = attack_func(self.cfg, self.adj_time_list, self.device)
@@ -130,16 +135,17 @@ class temporal_graph(torch_geometric.data.Dataset):
         ptb_rate = self.cfg.ATTACK.ptb_rate
         val_len = self.cfg.DATASET.TEMPORAL.val_len
         test_len = self.cfg.DATASET.TEMPORAL.test_len
+        attack_method = self.cfg.ATTACK.method
         data_path = os.path.join(get_dataset_root(), static_data_path, data_name)
         if not os.path.exists(data_path):
             os.mkdir(data_path)
 
-        pickle_path = os.path.join(data_path, "merged_data_ptb_{}_test_{}.pickle".format(ptb_rate,test_len))
+        pickle_path = os.path.join(data_path, "merged_data_ptb_{}_test_{}_{}.pickle".format(ptb_rate,test_len, attack_method))
 
         data_dict={}
 
         if os.path.exists(pickle_path):
-            logging.info("Load static data from merged_data_ptb_{}_test_{}.pickle".format(ptb_rate,test_len))
+            logging.info("Load static data from merged_data_ptb_{}_test_{}_{}.pickle".format(ptb_rate, test_len, attack_method))
             with open(pickle_path, 'rb') as handle:
                 data_dict = pickle.load(handle,encoding="latin1")
         else:
