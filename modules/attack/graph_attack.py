@@ -200,15 +200,15 @@ def random_attack_temporal(cfg, adj_matrix_lst, device):
     attack_data_path = cfg.ATTACK.attack_data_path
     ptb_rate = cfg.ATTACK.ptb_rate
     test_len = cfg.DATASET.TEMPORAL.test_len
-
+    random_method = "remove"
     if ptb_rate == 0.0:
         return adj_matrix_lst
         
     random_attack = Random(device=device)
     path = os.path.join(get_dataset_root(), attack_data_path, "{}_ptb_rate_{}_random".format(cfg.DATASET.dataset, ptb_rate))
-    if cfg.ATTACK.new_attack or not os.path.exists(os.path.join(path, "adj_ptb_{}_test_{}.pickle".format(ptb_rate,test_len))):
+    if cfg.ATTACK.new_attack or not os.path.exists(os.path.join(path, "adj_ptb_{}_test_{}_{}.pickle".format(ptb_rate, test_len, random_method))):
         # generate attacked data
-        logging.info("Random attack on dataset: {} ptb_rate: {} method: {}".format(cfg.DATASET.dataset, ptb_rate, "add"))
+        logging.info("Random attack on dataset: {} ptb_rate: {} method: {}".format(cfg.DATASET.dataset, ptb_rate, random_method))
         if not os.path.exists(path):
             os.mkdir(path)
         attack_data = []
@@ -216,15 +216,15 @@ def random_attack_temporal(cfg, adj_matrix_lst, device):
             num_edges = np.sum(adj_matrix_lst[time_step])
             num_modified = int(num_edges*ptb_rate)//2
             adj_matrix = adj_matrix_lst[time_step]
-            random_attack.attack(adj_matrix, n_perturbations = num_modified, type="add")
+            random_attack.attack(adj_matrix, n_perturbations = num_modified, type=random_method)
             attack_data.append(random_attack.modified_adj)
-        pickle_path = os.path.join(path, "adj_ptb_{}_test_{}.pickle".format(ptb_rate,test_len))
+        pickle_path = os.path.join(path, "adj_ptb_{}_test_{}_{}.pickle".format(ptb_rate, test_len, random_method))
         with open(pickle_path, 'ab') as handle:
             pickle.dump(attack_data, handle)
 
     # data already attacked
-    logging.info("Load data from {}_ptb_rate_{}_random_{}.".format(cfg.DATASET.dataset, ptb_rate, test_len))
-    pickle_path = os.path.join(path, "adj_ptb_{}_test_{}.pickle".format(ptb_rate,test_len))
+    logging.info("Load data from {}_ptb_rate_{}_random_{}_{}.".format(cfg.DATASET.dataset, ptb_rate, test_len, random_method))
+    pickle_path = os.path.join(path, "adj_ptb_{}_test_{}_{}.pickle".format(ptb_rate,test_len, random_method))
     with open(pickle_path, 'rb') as handle:
         attacked_adj = pickle.load(handle,encoding="latin1")
         attacked_matrix_lst = attacked_adj
