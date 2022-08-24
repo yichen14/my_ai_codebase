@@ -147,6 +147,9 @@ def meta_attack_temporal(cfg, adj_matrix_lst, device):
     path = os.path.join(get_dataset_root(), attack_data_path, "{}_ptb_rate_{}_metaattack".format(cfg.DATASET.dataset, ptb_rate))
     if cfg.ATTACK.new_attack or not os.path.exists(os.path.join(path, "adj_ptb_{}_test_{}.pickle".format(ptb_rate,test_len))):
         # generate attacked data
+        # print(os.path.join(path, "adj_ptb_{}_test_{}.pickle".format(ptb_rate,test_len)))
+        # print(cfg.ATTACK.new_attack)
+        # exit()
         logging.info("Meta attack on dataset: {} ptb_rate: {}".format(cfg.DATASET.dataset, ptb_rate))
         if not os.path.exists(path):
             os.mkdir(path)

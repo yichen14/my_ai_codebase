@@ -10,7 +10,7 @@ DATASET:
   TEMPORAL:
     use_feat: True
     val_len: 1
-    test_len: 2
+    test_len: 3
 
 TRAIN:
   max_epochs: 50
@@ -21,7 +21,7 @@ TRAIN:
     type: "ADAM"
 
 ATTACK:
-  method: "random"
+  method: "meta"
   ptb_rate: 0.0
   attack_data_path: "attack_data"
   new_attack: False
