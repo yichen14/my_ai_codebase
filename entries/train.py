@@ -18,7 +18,10 @@ import os
 
 def setup(cfg, args):
     # get device
-    device = args.device 
+    if args.gpu:
+        device = args.device 
+    else:
+        device = torch.device('cpu')
     # device = utils.guess_device()
 
     # set up dataset
@@ -38,22 +41,29 @@ def setup(cfg, args):
         model = model_cls(data.train_ngh_finder, data.n_feat, data.e_feat).to(device)
     else:
         model_cls = models.dispatcher(cfg)
-        model = model_cls(data.feat_dim, device).to(device)
+        if model_cls is not None:
+            model = model_cls(data.feat_dim, device).to(device)
+        else:
+            model = None
     
-
     # set up optimizer
-    if cfg.TRAIN.OPTIMIZER.type == "adadelta":
-        optimizer = optim.Adadelta(model.parameters(), lr = cfg.TRAIN.initial_lr,
-                                    weight_decay = cfg.TRAIN.OPTIMIZER.weight_decay)
-    elif cfg.TRAIN.OPTIMIZER.type == "SGD":
-        optimizer = optim.SGD(model.parameters(), lr = cfg.TRAIN.initial_lr, momentum = cfg.TRAIN.OPTIMIZER.momentum,
-                                weight_decay = cfg.TRAIN.OPTIMIZER.weight_decay)
-    elif cfg.TRAIN.OPTIMIZER.type == "ADAM":
-        optimizer = optim.Adam(model.parameters(), lr = cfg.TRAIN.initial_lr, betas = (0.9, 0.999),
-                                weight_decay = cfg.TRAIN.OPTIMIZER.weight_decay)
-        # optimizer = optim.Adam(model.parameters(), lr = cfg.TRAIN.initial_lr)                     
+    if model is None:
+        optimizer = None
     else:
-        raise NotImplementedError("Got unsupported optimizer: {}".format(cfg.TRAIN.OPTIMIZER.type))
+        
+        if cfg.TRAIN.OPTIMIZER.type == "adadelta":
+            optimizer = optim.Adadelta(model.parameters(), lr = cfg.TRAIN.initial_lr,
+                                        weight_decay = cfg.TRAIN.OPTIMIZER.weight_decay)
+        elif cfg.TRAIN.OPTIMIZER.type == "SGD":
+            optimizer = optim.SGD(model.parameters(), lr = cfg.TRAIN.initial_lr, momentum = cfg.TRAIN.OPTIMIZER.momentum,
+                                    weight_decay = cfg.TRAIN.OPTIMIZER.weight_decay)
+        elif cfg.TRAIN.OPTIMIZER.type == "ADAM":
+            optimizer = optim.Adam(model.parameters(), lr = cfg.TRAIN.initial_lr, betas = (0.9, 0.999),
+                                    weight_decay = cfg.TRAIN.OPTIMIZER.weight_decay)
+            # optimizer = optim.Adam(model.parameters(), lr = cfg.TRAIN.initial_lr)                     
+        else:
+            raise NotImplementedError("Got unsupported optimizer: {}".format(cfg.TRAIN.OPTIMIZER.type))
+    
     # set up loss function (note that we do not need to give criterion to a graph autoencoder)
     criterion = loss.dispatcher(cfg)
 
