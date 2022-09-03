@@ -42,7 +42,7 @@ def to_undirect(dense_matrices):
     for item in dense_matrices:
         matrix = torch.Tensor(item)
         matrix = torch.logical_or(matrix, matrix.T).float()
-        matrix = torch.logical_or(matrix, torch.eye(len(matrix))).float()
+        # matrix = torch.logical_or(matrix, torch.eye(len(matrix))).float()
         undirect_dense_list.append(matrix)
         undirect_sparse_list.append(csr_matrix(np.array(matrix.tolist())))
     return undirect_sparse_list
@@ -75,19 +75,16 @@ class temporal_graph(torch_geometric.data.Dataset):
 
         # self.adj_orig_dense_list, self.adj_time_list = to_undirect(self.adj_orig_dense_list) # to undirect
         # self.adj_time_list = to_undirect(self.adj_time_list) # to undirect
+        # self.adj_orig_dense_list, self.adj_time_list = to_undirect(self.adj_time_list) # to undirect
 
         # Attack 
-        # self.adj_time_list[0].tolil()
-        # print(self.adj_time_list[0].tolil().rows)
-        # print(map(np.random.choice, self.adj_time_list[0].tolil().rows))
-        # exit()
         logging.info("Start to attack graphs, time:{}".format(datetime.datetime.now()))
         if attack_flag and attack_func is not None:
             self.adj_time_list = attack_func(self.cfg, self.adj_time_list, self.device)
         
         # For DySAT
         # Conver sparse matrix to MultiGraph
-        if self.cfg.MODEL.model == "dysat":
+        if self.cfg.MODEL.model == "DYSAT":
             self.graphs = []
             for i in range(len(self.adj_time_list)):
                 G = nx.from_scipy_sparse_matrix(self.adj_time_list[i], create_using=nx.MultiGraph)
