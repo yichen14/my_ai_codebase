@@ -3,7 +3,7 @@ task: "temporal_link_prediction"
 seed: 321
 
 MODEL:
-  model: "TGAT"
+  model: "ProGCN"
 
 DATASET:
   dataset: "dblp"
