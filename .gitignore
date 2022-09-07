@@ -1,6 +1,7 @@
 __pycache__
 data
 scripts
+script.py
 trained_model
 configs
 baseline

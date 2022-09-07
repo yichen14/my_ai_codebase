@@ -1,19 +1,24 @@
 from xml.sax.handler import feature_external_ges
-from deeprobust.graph.global_attack import Random
-from deeprobust.graph.data import Dataset, Dpr2Pyg, Pyg2Dpr
 import os
 import torch
 import pickle
+import math
 from tqdm import tqdm, trange
 import numpy as np
-from utils import get_dataset_root
 import logging
+import random
+
+from utils import get_dataset_root
+from scipy.sparse import csr_matrix
+
+from deeprobust.graph.global_attack import Random
+from deeprobust.graph.data import Dataset, Dpr2Pyg, Pyg2Dpr
 from deeprobust.graph.defense import GCN
 from deeprobust.graph.global_attack import MetaApprox
 from deeprobust.graph.global_attack import Metattack
 from deeprobust.graph.global_attack import NodeEmbeddingAttack
 from deeprobust.graph.global_attack import DICE
-from scipy.sparse import csr_matrix
+
 
 def load_feat_and_label(data_name, data_path):
     label = np.load(os.path.join(data_path, data_name, "label.npy"))
