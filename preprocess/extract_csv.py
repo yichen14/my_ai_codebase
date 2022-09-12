@@ -49,9 +49,9 @@ def reindex(df):
     print(len(new_df))
 
     new_df.i = new_i
-    new_df.u += 1
-    new_df.i += 1
-    new_df.idx += 1
+    # new_df.u += 1
+    # new_df.i += 1
+    # new_df.idx += 1
     
     return new_df
 
@@ -62,8 +62,8 @@ def edge_list_to_coo_matrix(edge_lists):
         for u, i in edge_lists[t]:
             row.append(int(u))
             row.append(int(i))
-            col.append(int(u))
             col.append(int(i))
+            col.append(int(u))
             data.append(1)
             data.append(1)
         adj_time_lists.append(sps.coo_matrix((data, (row, col))))
