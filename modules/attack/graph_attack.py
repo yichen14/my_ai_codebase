@@ -4,6 +4,7 @@ from deeprobust.graph.data import Dataset, Dpr2Pyg, Pyg2Dpr
 import os
 import torch
 import pickle
+import random
 from tqdm import tqdm, trange
 import numpy as np
 from utils import get_dataset_root
@@ -200,7 +201,9 @@ def random_attack_temporal(cfg, adj_matrix_lst, device):
     attack_data_path = cfg.ATTACK.attack_data_path
     ptb_rate = cfg.ATTACK.ptb_rate
     test_len = cfg.DATASET.TEMPORAL.test_len
-    random_method = "remove"
+
+    random_method = "remove" # set default random attack method here
+
     if ptb_rate == 0.0:
         return adj_matrix_lst
         
@@ -235,5 +238,29 @@ def random_attack_temporal(cfg, adj_matrix_lst, device):
             attacked_matrix_lst.append(adj_matrix_lst[time_step])
 
     assert len(attacked_matrix_lst) == len(adj_matrix_lst)
+    return attacked_matrix_lst
+
+def temporal_shift_attack(cfg, adj_matrix_lst, device):
+    attack_data_path = cfg.ATTACK.attack_data_path
+    ptb_rate = cfg.ATTACK.ptb_rate
+    test_len = cfg.DATASET.TEMPORAL.test_len
+
+    if ptb_rate == 0.0:
+        return adj_matrix_lst
+
+    N = len(adj_matrix_lst)
+
+    modified_time_step = int((len(adj_matrix_lst)-test_len) * ptb_rate)
+
+    attacked_matrix_lst = []
+    # attacked_matrix_lst.append(adj_matrix_lst[:modified_time_step])
+    for _ in range(modified_time_step):
+        idx = random.randint(0,len(adj_matrix_lst)-1-test_len)
+        attacked_matrix_lst.append(adj_matrix_lst.pop(idx))
+    
+    attacked_matrix_lst+=adj_matrix_lst
+
+    assert len(attacked_matrix_lst) == N
+
     return attacked_matrix_lst
 

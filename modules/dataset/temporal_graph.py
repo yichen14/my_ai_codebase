@@ -136,12 +136,12 @@ class temporal_graph(torch_geometric.data.Dataset):
         if not os.path.exists(data_path):
             os.mkdir(data_path)
 
-        pickle_path = os.path.join(data_path, "merged_data_ptb_{}_test_{}_{}.pickle".format(ptb_rate,test_len, attack_method))
+        pickle_path = os.path.join(data_path, "merged_data_ptb_{}_test_{}_{}_remove.pickle".format(ptb_rate,test_len, attack_method))
 
         data_dict={}
 
         if os.path.exists(pickle_path):
-            logging.info("Load static data from merged_data_ptb_{}_test_{}_{}.pickle".format(ptb_rate, test_len, attack_method))
+            logging.info("Load static data from merged_data_ptb_{}_test_{}_{}_remove.pickle".format(ptb_rate, test_len, attack_method))
             with open(pickle_path, 'rb') as handle:
                 data_dict = pickle.load(handle,encoding="latin1")
         else:

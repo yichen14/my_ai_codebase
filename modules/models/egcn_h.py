@@ -154,7 +154,7 @@ class TopK(torch.nn.Module):
         topk_indices = topk_indices[vals > -float("Inf")]
 
         if topk_indices.size(0) < self.k:
-            topk_indices = u.pad_with_last_val(topk_indices,self.k)
+            topk_indices = pad_with_last_val(topk_indices,self.k)
 
         tanh = torch.nn.Tanh()
 
