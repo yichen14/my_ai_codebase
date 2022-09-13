@@ -7,3 +7,4 @@ configs
 baseline
 continuous_processed
 temporal_*
+raw_data

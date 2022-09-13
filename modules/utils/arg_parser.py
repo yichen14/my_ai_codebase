@@ -15,6 +15,8 @@ def load_yaml(file_path):
 def parse_args():
     parser = argparse.ArgumentParser(description = "robust graph learning on dynamic graphs")
 
+    parser.add_argument('--gpu', type=int, default=1,
+                        help='default is to use gpu')
     parser.add_argument('--device', type=int, default=0,
                         help='device id')
 

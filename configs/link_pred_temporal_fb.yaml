@@ -5,6 +5,7 @@ seed: 321
 MODEL:
   model: "DYSAT"
 
+
 DATASET:
   dataset: "fb"
   TEMPORAL:
@@ -21,7 +22,7 @@ TRAIN:
 
 ATTACK:
   method: "random"
-  ptb_rate: 0.1
+  ptb_rate: 0.0
   attack_data_path: "attack_data"
   new_attack: False
 

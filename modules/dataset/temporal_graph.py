@@ -15,6 +15,7 @@ from tqdm import tqdm, trange
 import logging
 import networkx as nx
 import datetime
+from torch_geometric.utils import negative_sampling
 
 def sparse_to_tuple(sparse_mx):
     if not sp.isspmatrix_coo(sparse_mx):
@@ -33,21 +34,18 @@ def csr_matrix_to_tensor(matrices):
         adj_orig_dense_list.append(torch.sparse.FloatTensor(torch.LongTensor(indices), torch.FloatTensor(values), torch.Size(data.shape)).to_dense())
     return adj_orig_dense_list
 
-def to_undirect(sparse_matrices):
-    dense_matrices = csr_matrix_to_tensor(sparse_matrices)
+def to_undirect(dense_matrices):
+    # dense_matrices = csr_matrix_to_tensor(sparse_matrices)
     undirect_dense_list = []
     undirect_sparse_list = []
     # N = dense_matrices[0].shape[0]
-    for matrix in dense_matrices:
-        # for i in range(N):
-        #     for j in range(N):
-        #         if matrix[i, j] == 1:
-        #             matrix[j, i] = 1
+    for item in dense_matrices:
+        matrix = torch.Tensor(item)
         matrix = torch.logical_or(matrix, matrix.T).float()
         # matrix = torch.logical_or(matrix, torch.eye(len(matrix))).float()
         undirect_dense_list.append(matrix)
         undirect_sparse_list.append(csr_matrix(np.array(matrix.tolist())))
-    return undirect_dense_list, undirect_sparse_list
+    return undirect_sparse_list
 
 # Temporal Graph
 class temporal_graph(torch_geometric.data.Dataset):
@@ -71,7 +69,13 @@ class temporal_graph(torch_geometric.data.Dataset):
         with open(adj_time_list_path, 'rb') as handle:
             self.adj_time_list = pickle.load(handle,encoding="latin1")
 
-        self.adj_orig_dense_list, self.adj_time_list = to_undirect(self.adj_time_list) # to undirect
+        adj_orig_dense_list_path = os.path.join(get_dataset_root(), data_name, "adj_orig_dense_list.pickle")
+        with open(adj_orig_dense_list_path, 'rb') as handle:
+            self.adj_orig_dense_list = pickle.load(handle,encoding="bytes")
+
+        # self.adj_orig_dense_list, self.adj_time_list = to_undirect(self.adj_orig_dense_list) # to undirect
+        # self.adj_time_list = to_undirect(self.adj_time_list) # to undirect
+        # self.adj_orig_dense_list, self.adj_time_list = to_undirect(self.adj_time_list) # to undirect
 
         # Attack 
         logging.info("Start to attack graphs, time:{}".format(datetime.datetime.now()))
@@ -102,7 +106,8 @@ class temporal_graph(torch_geometric.data.Dataset):
         self.pos_edges_l, self.neg_edges_l = self.mask_edges_prd()
         self.prepare_edge_list()
         logging.info("Finish to load temporal graphs, time:{}".format(datetime.datetime.now()))
-        if self.cfg.task == "static_link_prediction":
+        # if self.cfg.task == "static_link_prediction":
+        if self.cfg.MODEL.model in ['GAE', 'VGAE', "ProGCN", "RGCN"]:
             # if the model is GAE or any static graph neural network, merged dataset for static gnn training
             self.prepare_static_dataset()
 
@@ -128,11 +133,12 @@ class temporal_graph(torch_geometric.data.Dataset):
         # TODO: load data from local
         data_name = self.cfg.DATASET.dataset
         static_data_path = self.cfg.DATASET.STATIC.merged_data_path
+        attack_data_path = self.cfg.ATTACK.attack_data_path
         ptb_rate = self.cfg.ATTACK.ptb_rate
         val_len = self.cfg.DATASET.TEMPORAL.val_len
         test_len = self.cfg.DATASET.TEMPORAL.test_len
         attack_method = self.cfg.ATTACK.method
-        data_path = os.path.join(get_dataset_root(), static_data_path, data_name)
+        data_path = os.path.join(get_dataset_root(), attack_data_path, "{}_ptb_rate_{}_node".format(self.cfg.DATASET.dataset, ptb_rate))
         if not os.path.exists(data_path):
             os.mkdir(data_path)
 
@@ -252,24 +258,25 @@ class temporal_graph(torch_geometric.data.Dataset):
                 rows_close = np.all(np.round(a - b[:, None], tol) == 0, axis=-1)
                 return np.any(rows_close)
 
-            edges_false = []
-            while len(edges_false) < num_false:
-                idx_i = np.random.randint(0, adj.shape[0])
-                idx_j = np.random.randint(0, adj.shape[0])
-                if idx_i == idx_j:
-                    continue
-                if ismember([idx_i, idx_j], edges_all):
-                    continue
-                if edges_false:
-                    if ismember([idx_j, idx_i], np.array(edges_false)):
-                        continue
-                    if ismember([idx_i, idx_j], np.array(edges_false)):
-                        continue
-                edges_false.append([idx_i, idx_j])
+            # edges_false = []
+            # while len(edges_false) < num_false:
+            #     idx_i = np.random.randint(0, adj.shape[0])
+            #     idx_j = np.random.randint(0, adj.shape[0])
+            #     if idx_i == idx_j:
+            #         continue
+            #     if ismember([idx_i, idx_j], edges_all):
+            #         continue
+            #     if edges_false:
+            #         if ismember([idx_j, idx_i], np.array(edges_false)):
+            #             continue
+            #         if ismember([idx_i, idx_j], np.array(edges_false)):
+            #             continue
+            #     edges_false.append([idx_i, idx_j])
 
-            assert ~ismember(edges_false, edges_all)
+            # assert ~ismember(edges_false, edges_all)
 
-            false_edges_l.append(edges_false)
+            # false_edges_l.append(edges_false)
+            false_edges_l.append(negative_sampling(edges, adj.shape[0]))
 
         # NOTE: these edge lists only contain single direction of edge!
         return pos_edges_l, false_edges_l
