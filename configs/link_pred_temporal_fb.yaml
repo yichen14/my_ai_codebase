@@ -3,8 +3,7 @@ task: "temporal_link_prediction"
 seed: 321
 
 MODEL:
-  model: "DYSAT"
-
+  model: "EGCNH"
 
 DATASET:
   dataset: "fb"

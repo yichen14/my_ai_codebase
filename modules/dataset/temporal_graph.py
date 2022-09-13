@@ -25,13 +25,14 @@ def sparse_to_tuple(sparse_mx):
     shape = sparse_mx.shape
     return coords, values, shape
 
-def csr_matrix_to_tensor(matrices):
+def csr_matrix_to_tensor(matrices, num_nodes):
     adj_orig_dense_list = []
     for i in range(len(matrices)):
-        data = matrices[i].tocoo()
-        values = data.data
-        indices = np.vstack((data.row, data.col))
-        adj_orig_dense_list.append(torch.sparse.FloatTensor(torch.LongTensor(indices), torch.FloatTensor(values), torch.Size(data.shape)).to_dense())
+        data = torch.zeros(num_nodes, num_nodes)
+        graph = matrices[i].tocoo()
+        for row_, col_ in zip(graph.row, graph.col):
+            data[row_,col_] = 1
+        adj_orig_dense_list.append(data)
     return adj_orig_dense_list
 
 def to_undirect(dense_matrices):
@@ -69,9 +70,9 @@ class temporal_graph(torch_geometric.data.Dataset):
         with open(adj_time_list_path, 'rb') as handle:
             self.adj_time_list = pickle.load(handle,encoding="latin1")
 
-        adj_orig_dense_list_path = os.path.join(get_dataset_root(), data_name, "adj_orig_dense_list.pickle")
-        with open(adj_orig_dense_list_path, 'rb') as handle:
-            self.adj_orig_dense_list = pickle.load(handle,encoding="bytes")
+        # adj_orig_dense_list_path = os.path.join(get_dataset_root(), data_name, "adj_orig_dense_list.pickle")
+        # with open(adj_orig_dense_list_path, 'rb') as handle:
+        #     self.adj_orig_dense_list = pickle.load(handle,encoding="bytes")
 
         # self.adj_orig_dense_list, self.adj_time_list = to_undirect(self.adj_orig_dense_list) # to undirect
         # self.adj_time_list = to_undirect(self.adj_time_list) # to undirect
@@ -91,10 +92,10 @@ class temporal_graph(torch_geometric.data.Dataset):
                 self.graphs.append(G)
 
         self.time_step = len(self.adj_time_list)
-        self.adj_orig_dense_list = csr_matrix_to_tensor(self.adj_time_list)
-        self.num_nodes = self.adj_orig_dense_list[0].shape[0]
+        self.num_nodes = self.gen_node_number(self.adj_time_list)
+        self.adj_orig_dense_list = csr_matrix_to_tensor(self.adj_time_list, self.num_nodes)
         
-        if use_feat:
+        if use_feat and os.path.exists(os.path.join(get_dataset_root(), data_name, "feat.npy")):
             feat_path = os.path.join(get_dataset_root(), data_name, "feat.npy")
             self.feat = np.load(feat_path)
         else:
@@ -106,10 +107,18 @@ class temporal_graph(torch_geometric.data.Dataset):
         self.pos_edges_l, self.neg_edges_l = self.mask_edges_prd()
         self.prepare_edge_list()
         logging.info("Finish to load temporal graphs, time:{}".format(datetime.datetime.now()))
-        # if self.cfg.task == "static_link_prediction":
         if self.cfg.MODEL.model in ['GAE', 'VGAE', "ProGCN", "RGCN"]:
             # if the model is GAE or any static graph neural network, merged dataset for static gnn training
             self.prepare_static_dataset()
+
+    def gen_node_number(self, edge_lists):
+        num_nodes = 0
+        for i in range(len(edge_lists)):
+            data = edge_lists[i].tocoo()
+            index = max([data.row.max(), data.col.max()]) + 1
+            if index > num_nodes:
+                num_nodes = index  
+        return num_nodes
 
     def load_from_data_dict(self, data_dict):
         self.adj_dense_merge_train = data_dict['adj_dense_merge_train']
@@ -142,12 +151,12 @@ class temporal_graph(torch_geometric.data.Dataset):
         if not os.path.exists(data_path):
             os.mkdir(data_path)
 
-        pickle_path = os.path.join(data_path, "merged_data_ptb_{}_test_{}_{}.pickle".format(ptb_rate,test_len, attack_method))
+        pickle_path = os.path.join(data_path, "merged_data_ptb_{}_test_{}_{}_remove.pickle".format(ptb_rate,test_len, attack_method))
 
         data_dict={}
 
         if os.path.exists(pickle_path):
-            logging.info("Load static data from merged_data_ptb_{}_test_{}_{}.pickle".format(ptb_rate, test_len, attack_method))
+            logging.info("Load static data from merged_data_ptb_{}_test_{}_{}_remove.pickle".format(ptb_rate, test_len, attack_method))
             with open(pickle_path, 'rb') as handle:
                 data_dict = pickle.load(handle,encoding="latin1")
         else:
@@ -198,8 +207,6 @@ class temporal_graph(torch_geometric.data.Dataset):
         for i in range(len(edge_list)):
             self.edge_idx_list.append(torch.tensor(np.transpose(edge_list[i]), dtype=torch.long))
             
-        
-
     def mask_edges_det(self):
         adj_train_l, train_edges_l, val_edges_l = [], [], []
         val_edges_false_l, test_edges_l, test_edges_false_l = [], [], []
@@ -220,7 +227,7 @@ class temporal_graph(torch_geometric.data.Dataset):
             adj_triu = sp.triu(adj)
             adj_tuple = sparse_to_tuple(adj_triu)
             edges = adj_tuple[0]
-            edges_all = sparse_to_tuple(adj)[0]
+            # edges_all = sparse_to_tuple(adj)[0]
 
             train_edges = edges
 
@@ -240,6 +247,7 @@ class temporal_graph(torch_geometric.data.Dataset):
             # NOTE: Splits are randomized and results might slightly deviate from reported numbers in the paper.
 
             adj = adjs_list[i]
+
             # Remove diagonal elements
             adj = adj - sp.dia_matrix((adj.diagonal()[np.newaxis, :], [0]), shape=adj.shape)
             adj.eliminate_zeros()
@@ -247,119 +255,11 @@ class temporal_graph(torch_geometric.data.Dataset):
             assert np.diag(adj.todense()).sum() == 0
 
             adj_triu = sp.triu(adj)
-            adj_tuple = sparse_to_tuple(adj_triu)
+            adj_tuple = sparse_to_tuple(adj)
             edges = adj_tuple[0]
-            edges_all = sparse_to_tuple(adj)[0]
-            num_false = int(edges.shape[0])
-
             pos_edges_l.append(edges)
-
-            def ismember(a, b, tol=5):
-                rows_close = np.all(np.round(a - b[:, None], tol) == 0, axis=-1)
-                return np.any(rows_close)
-
-            # edges_false = []
-            # while len(edges_false) < num_false:
-            #     idx_i = np.random.randint(0, adj.shape[0])
-            #     idx_j = np.random.randint(0, adj.shape[0])
-            #     if idx_i == idx_j:
-            #         continue
-            #     if ismember([idx_i, idx_j], edges_all):
-            #         continue
-            #     if edges_false:
-            #         if ismember([idx_j, idx_i], np.array(edges_false)):
-            #             continue
-            #         if ismember([idx_i, idx_j], np.array(edges_false)):
-            #             continue
-            #     edges_false.append([idx_i, idx_j])
-
-            # assert ~ismember(edges_false, edges_all)
-
-            # false_edges_l.append(edges_false)
-            false_edges_l.append(negative_sampling(edges, adj.shape[0]))
-
-        # NOTE: these edge lists only contain single direction of edge!
-        return pos_edges_l, false_edges_l
-
-    def mask_edges_prd_new(self, val_ratio = 0.05, test_ratio = 0.10):
-        pos_edges_l , false_edges_l = [], []
-        edges_list = []
-        adjs_list, adj_orig_dense_list = self.adjs_list, self.adj_orig_dense_list
-        # Function to build test set with 10% positive links
-        # NOTE: Splits are randomized and results might slightly deviate from reported numbers in the paper.
-
-        adj = adjs_list[0]
-        # Remove diagonal elements
-        adj = adj - sp.dia_matrix((adj.diagonal()[np.newaxis, :], [0]), shape=adj.shape)
-        adj.eliminate_zeros()
-        # Check that diag is zero:
-        assert np.diag(adj.todense()).sum() == 0
-
-        adj_triu = sp.triu(adj)
-        adj_tuple = sparse_to_tuple(adj_triu)
-        edges = adj_tuple[0]
-        edges_all = sparse_to_tuple(adj)[0]
-        num_false = int(edges.shape[0])
-
-        pos_edges_l.append(edges)
-
-        def ismember(a, b, tol=5):
-            rows_close = np.all(np.round(a - b[:, None], tol) == 0, axis=-1)
-            return np.any(rows_close)
-
-        edges_false = []
-        while len(edges_false) < num_false:
-            idx_i = np.random.randint(0, adj.shape[0])
-            idx_j = np.random.randint(0, adj.shape[0])
-            if idx_i == idx_j:
-                continue
-            if ismember([idx_i, idx_j], edges_all):
-                continue
-            if edges_false:
-                if ismember([idx_j, idx_i], np.array(edges_false)):
-                    continue
-                if ismember([idx_i, idx_j], np.array(edges_false)):
-                    continue
-            edges_false.append([idx_i, idx_j])
-
-        assert ~ismember(edges_false, edges_all)
-        false_edges_l.append(np.asarray(edges_false))
-
-        for i in range(1, len(adjs_list)):
-            edges_pos = np.transpose(np.asarray(np.where((adj_orig_dense_list[i] - adj_orig_dense_list[i-1])>0)))
-            num_false = int(edges_pos.shape[0])
-
-            adj = adjs_list[i]
-            # Remove diagonal elements
-            adj = adj - sp.dia_matrix((adj.diagonal()[np.newaxis, :], [0]), shape=adj.shape)
-            adj.eliminate_zeros()
-            # Check that diag is zero:
-            assert np.diag(adj.todense()).sum() == 0
-
-            adj_triu = sp.triu(adj)
-            adj_tuple = sparse_to_tuple(adj_triu)
-            edges = adj_tuple[0]
-            edges_all = sparse_to_tuple(adj)[0]
-
-            edges_false = []
-            while len(edges_false) < num_false:
-                idx_i = np.random.randint(0, adj.shape[0])
-                idx_j = np.random.randint(0, adj.shape[0])
-                if idx_i == idx_j:
-                    continue
-                if ismember([idx_i, idx_j], edges_all):
-                    continue
-                if edges_false:
-                    if ismember([idx_j, idx_i], np.array(edges_false)):
-                        continue
-                    if ismember([idx_i, idx_j], np.array(edges_false)):
-                        continue
-                edges_false.append([idx_i, idx_j])
-
-            assert ~ismember(edges_false, edges_all)
-
-            false_edges_l.append(np.asarray(edges_false))
-            pos_edges_l.append(edges_pos)
+            false_edges_l.append(negative_sampling(torch.Tensor(edges.T), adj.shape[0]).numpy().T)
+            # false_edges_l.append(None)
 
         # NOTE: these edge lists only contain single direction of edge!
         return pos_edges_l, false_edges_l

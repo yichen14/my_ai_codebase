@@ -6,7 +6,7 @@ MODEL:
   model: "DYSAT"
 
 DATASET:
-  dataset: "dblp"
+  dataset: "reddit"
   TEMPORAL:
     use_feat: False
     test_len: 3
