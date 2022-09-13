@@ -21,7 +21,8 @@ def dispatcher(cfg):
             from .tgat_trainer import tgat_trainer as tgat_trainer_fn
             return tgat_trainer_fn
         elif model_name == "VGRNN":
-            raise NotImplementedError
+            from .temporal_graph_trainer import temp_graph_trainer as temp_graph_trainer_fn
+            return temp_graph_trainer_fn
             # from .vgrnn_trainer import vgrnn_trainer as vgrnn_trainer_fn
             # return vgrnn_trainer_fn
         elif model_name == "RGCN":

@@ -9,7 +9,7 @@ from utils.metrics import Evaluation
 from tqdm import tqdm
 import logging
 import time
-from torch_geometric.utils import negative_sampling
+
 
 class autoencoder_trainer(base_trainer):
     def __init__(self, cfg, model, criterion, dataset_module, optimizer, device) -> None:
