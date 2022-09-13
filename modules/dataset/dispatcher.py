@@ -1,7 +1,5 @@
 import os
 import utils
-import torch_geometric.transforms as T
-from torch_geometric.datasets import Planetoid
 
 def dispatcher(cfg, device = "cuda:0"):
     dataset_name = cfg.DATASET.dataset

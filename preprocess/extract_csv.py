@@ -49,9 +49,9 @@ def reindex(df):
     print(len(new_df))
 
     new_df.i = new_i
-    new_df.u += 1
-    new_df.i += 1
-    new_df.idx += 1
+    # new_df.u += 1
+    # new_df.i += 1
+    # new_df.idx += 1
     
     return new_df
 
@@ -62,8 +62,8 @@ def edge_list_to_coo_matrix(edge_lists):
         for u, i in edge_lists[t]:
             row.append(int(u))
             row.append(int(i))
-            col.append(int(u))
             col.append(int(i))
+            col.append(int(u))
             data.append(1)
             data.append(1)
         adj_time_lists.append(sps.coo_matrix((data, (row, col))))
@@ -73,24 +73,31 @@ def prepare_edge_list(df, time_step):
     edge_lists = [[] for i in range(time_step)]
     t_max, t_min = df.ts.max(), df.ts.min()
     t_delta = (t_max - t_min) / time_step + 1e-6
+    num_node = max(df.u.max(), df.i.max()) + 1
+    adj_orig_dense_list = np.zeros((time_step, num_node, num_node))
+    print(adj_orig_dense_list.shape)
     for _, row in df.iterrows():
         t = int((row.ts - t_min) / t_delta)
         edge_lists[t].append((row.u, row.i))
+        adj_orig_dense_list[t, int(row.u), int(row.i)] = 1
     adj_time_lists = edge_list_to_coo_matrix(edge_lists)
-    return adj_time_lists
+    return adj_time_lists, adj_orig_dense_list
 
 def run(data_name):
     PATH = '../raw_data/{0}/{1}.csv'.format(data_name, data_name)
     OUT_PATH = '../data/{}'.format(data_name)
     if not os.path.exists(OUT_PATH):
         os.makedirs(OUT_PATH)
-    OUT_EDGE_LIST = '../data/{}/adj_time_list.pickle'.format(data_name)
+    OUT_EDGE_LIST = os.path.join(OUT_PATH, 'adj_time_list.pickle')
+    OUT_DENSE_DEGE_LIST = os.path.join(OUT_PATH, 'adj_orig_dense_list.pickle')
     
     df, feat = preprocess(PATH)
     new_df = reindex(df)
-    adj_time_lists = prepare_edge_list(new_df, time_step = 16)
+    adj_time_lists, adj_orig_dense_list = prepare_edge_list(new_df, time_step = 16)
     with open(OUT_EDGE_LIST, 'wb') as f:
         pickle.dump(adj_time_lists, f)
+    with open(OUT_DENSE_DEGE_LIST, 'wb') as f:
+        pickle.dump(adj_orig_dense_list, f)
 
 if __name__ == '__main__':
     run('reddit')

@@ -6,7 +6,7 @@ MODEL:
   model: "EGCNO"
 
 DATASET:
-  dataset: "fb"
+  dataset: "reddit"
   TEMPORAL:
     use_feat: False
     test_len: 3
@@ -20,8 +20,8 @@ TRAIN:
     type: "ADAM"
 
 ATTACK:
-  method: "temporal"
-  ptb_rate: 1.0
+  method: "random"
+  ptb_rate: 0.0
   attack_data_path: "attack_data"
   new_attack: False
 
