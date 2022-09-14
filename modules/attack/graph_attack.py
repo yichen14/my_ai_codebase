@@ -202,7 +202,7 @@ def random_attack_temporal(cfg, adj_matrix_lst, device):
     ptb_rate = cfg.ATTACK.ptb_rate
     test_len = cfg.DATASET.TEMPORAL.test_len
 
-    random_method = "remove" # set default random attack method here
+    random_method = "add" # set default random attack method here
 
     if ptb_rate == 0.0:
         return adj_matrix_lst

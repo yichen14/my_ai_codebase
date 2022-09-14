@@ -84,8 +84,8 @@ def prepare_edge_list(df, time_step):
     return adj_time_lists, adj_orig_dense_list
 
 def run(data_name):
-    PATH = '../raw_data/{0}/{1}.csv'.format(data_name, data_name)
-    OUT_PATH = '../data/{}'.format(data_name)
+    PATH = '/home/randomgraph/baoyul2/my_ai_codebase/raw_data/{0}/{1}.csv'.format(data_name, data_name)
+    OUT_PATH = '/home/randomgraph/data/{}'.format(data_name)
     if not os.path.exists(OUT_PATH):
         os.makedirs(OUT_PATH)
     OUT_EDGE_LIST = os.path.join(OUT_PATH, 'adj_time_list.pickle')

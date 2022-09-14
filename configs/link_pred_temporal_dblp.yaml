@@ -6,7 +6,7 @@ MODEL:
   model: "EULER"
 
 DATASET:
-  dataset: "reddit"
+  dataset: "dblp"
   TEMPORAL:
     use_feat: False
     test_len: 3
