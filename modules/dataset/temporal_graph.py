@@ -68,7 +68,9 @@ class temporal_graph(torch_geometric.data.Dataset):
         
         adj_time_list_path = os.path.join(get_dataset_root(), data_name, "adj_time_list.pickle")
         with open(adj_time_list_path, 'rb') as handle:
-            self.adj_time_list = pickle.load(handle,encoding="latin1")
+            self.adj_time_list = pickle.load(handle,encoding="bytes")
+            
+        print(self.adj_time_list[0].max())
 
         # adj_orig_dense_list_path = os.path.join(get_dataset_root(), data_name, "adj_orig_dense_list.pickle")
         # with open(adj_orig_dense_list_path, 'rb') as handle:
@@ -79,9 +81,9 @@ class temporal_graph(torch_geometric.data.Dataset):
         # self.adj_orig_dense_list, self.adj_time_list = to_undirect(self.adj_time_list) # to undirect
 
         # Attack 
-        logging.info("Start to attack graphs, time:{}".format(datetime.datetime.now()))
-        if attack_flag and attack_func is not None:
-            self.adj_time_list = attack_func(self.cfg, self.adj_time_list, self.device)
+        # logging.info("Start to attack graphs, time:{}".format(datetime.datetime.now()))
+        # if attack_flag and attack_func is not None:
+        #     self.adj_time_list = attack_func(self.cfg, self.adj_time_list, self.device)
         
         # For DySAT
         # Conver sparse matrix to MultiGraph
