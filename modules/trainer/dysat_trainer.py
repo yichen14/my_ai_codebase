@@ -5,6 +5,9 @@ import networkx as nx
 from collections import defaultdict
 import copy
 import scipy
+from scipy.sparse import csr_matrix
+import os
+import pickle
 
 import torch
 import torch.nn as nn
@@ -14,6 +17,7 @@ from .base_trainer import base_trainer
 from utils.metrics import Evaluation
 from utils.minibatch import MyDataset
 from utils.random_walk import Graph_RandomWalk
+from utils import get_dataset_root
 
 """
 Parts of this code file are derive from 
@@ -26,6 +30,8 @@ def run_random_walks_n2v(graph, adj, num_walks, walk_len):
         Out: (target, context) pairs from random walk sampling using 
         the sampling strategy of node2vec (deepwalk)"""
     nx_G = nx.Graph()
+    # TypeError: 'coo_matrix' object is not subscriptable
+    adj = adj.tocsr()
     for e in graph.edges():
         nx_G.add_edge(e[0], e[1])
     for edge in graph.edges():

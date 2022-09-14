@@ -2,11 +2,7 @@ from xml.sax.handler import feature_external_ges
 import os
 import torch
 import pickle
-<<<<<<< HEAD
-import math
-=======
 import random
->>>>>>> c241ee890f4c41424fab80d36ff2e7843fcea33d
 from tqdm import tqdm, trange
 import numpy as np
 import logging
