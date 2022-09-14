@@ -40,13 +40,13 @@ def to_undirect(dense_matrices):
     undirect_dense_list = []
     undirect_sparse_list = []
     # N = dense_matrices[0].shape[0]
-    for item in dense_matrices:
+    for item in tqdm(dense_matrices):
         matrix = torch.Tensor(item)
         matrix = torch.logical_or(matrix, matrix.T).float()
         # matrix = torch.logical_or(matrix, torch.eye(len(matrix))).float()
         undirect_dense_list.append(matrix)
         undirect_sparse_list.append(csr_matrix(np.array(matrix.tolist())))
-    return undirect_sparse_list
+    return undirect_dense_list, undirect_sparse_list
 
 # Temporal Graph
 class temporal_graph(torch_geometric.data.Dataset):
@@ -70,20 +70,22 @@ class temporal_graph(torch_geometric.data.Dataset):
         with open(adj_time_list_path, 'rb') as handle:
             self.adj_time_list = pickle.load(handle,encoding="bytes")
             
-        print(self.adj_time_list[0].max())
+        assert self.adj_time_list[0].max() == 1.0
 
-        # adj_orig_dense_list_path = os.path.join(get_dataset_root(), data_name, "adj_orig_dense_list.pickle")
-        # with open(adj_orig_dense_list_path, 'rb') as handle:
-        #     self.adj_orig_dense_list = pickle.load(handle,encoding="bytes")
+        adj_orig_dense_list_path = os.path.join(get_dataset_root(), data_name, "adj_orig_dense_list.pickle")
+        with open(adj_orig_dense_list_path, 'rb') as handle:
+            self.adj_orig_dense_list = pickle.load(handle,encoding="bytes")
 
+        self.num_nodes = self.gen_node_number(self.adj_time_list)
+        # self.adj_orig_dense_list = csr_matrix_to_tensor(self.adj_time_list, self.num_nodes)
         # self.adj_orig_dense_list, self.adj_time_list = to_undirect(self.adj_orig_dense_list) # to undirect
         # self.adj_time_list = to_undirect(self.adj_time_list) # to undirect
         # self.adj_orig_dense_list, self.adj_time_list = to_undirect(self.adj_time_list) # to undirect
 
         # Attack 
-        # logging.info("Start to attack graphs, time:{}".format(datetime.datetime.now()))
-        # if attack_flag and attack_func is not None:
-        #     self.adj_time_list = attack_func(self.cfg, self.adj_time_list, self.device)
+        logging.info("Start to attack graphs, time:{}".format(datetime.datetime.now()))
+        if attack_flag and attack_func is not None:
+            self.adj_time_list = attack_func(self.cfg, self.adj_time_list, self.device)
         
         # For DySAT
         # Conver sparse matrix to MultiGraph
@@ -94,7 +96,6 @@ class temporal_graph(torch_geometric.data.Dataset):
                 self.graphs.append(G)
 
         self.time_step = len(self.adj_time_list)
-        self.num_nodes = self.gen_node_number(self.adj_time_list)
         self.adj_orig_dense_list = csr_matrix_to_tensor(self.adj_time_list, self.num_nodes)
         
         if use_feat and os.path.exists(os.path.join(get_dataset_root(), data_name, "feat.npy")):

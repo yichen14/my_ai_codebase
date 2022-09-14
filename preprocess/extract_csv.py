@@ -4,6 +4,23 @@ import pickle
 import scipy
 import scipy.sparse as sps
 import os
+import torch
+from scipy.sparse import csr_matrix
+from tqdm import tqdm
+
+def to_undirect(dense_matrices):
+    print("to undirected")
+    # dense_matrices = csr_matrix_to_tensor(sparse_matrices)
+    undirect_dense_list = []
+    undirect_sparse_list = []
+    # N = dense_matrices[0].shape[0]
+    for item in tqdm(dense_matrices):
+        matrix = torch.Tensor(item)
+        matrix = torch.logical_or(matrix, matrix.T).float()
+        # matrix = torch.logical_or(matrix, torch.eye(len(matrix))).float()
+        undirect_dense_list.append(matrix)
+        undirect_sparse_list.append(csr_matrix(np.array(matrix.tolist())))
+    return undirect_dense_list, undirect_sparse_list
 
 def preprocess(data_name):
     u_list, i_list, ts_list, label_list = [], [], [], []
@@ -104,6 +121,8 @@ def run(data_name):
     df, feat = preprocess(PATH)
     new_df = reindex(df)
     adj_time_lists, adj_orig_dense_list = prepare_edge_list(new_df, time_step = 16)
+    adj_orig_dense_list, adj_time_lists = to_undirect(adj_orig_dense_list)
+    
     with open(OUT_EDGE_LIST, 'wb') as f:
         pickle.dump(adj_time_lists, f)
     with open(OUT_DENSE_DEGE_LIST, 'wb') as f:
