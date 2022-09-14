@@ -55,7 +55,7 @@ def reindex(df):
     
     return new_df
 
-def edge_list_to_coo_matrix(edge_lists):
+def edge_list_to_coo_matrix(edge_lists, num_node):
     adj_time_lists = []
     for t in range(len(edge_lists)):
         row, col, data = [], [], []
@@ -66,7 +66,16 @@ def edge_list_to_coo_matrix(edge_lists):
             col.append(int(u))
             data.append(1)
             data.append(1)
-        adj_time_lists.append(sps.coo_matrix((data, (row, col))))
+        row = np.array(row)
+        col = np.array(col)
+        data = np.ones(len(row))
+        adj_time_lists.append(scipy.sparse.csr_matrix((data, (row, col)), shape=(num_node, num_node)))
+    return adj_time_lists
+
+def dense_to_sparse(adj_orig_dense_list):
+    adj_time_lists = []
+    for t in range(adj_orig_dense_list.shape[0]):
+        adj_time_lists.append(sps.csr_matrix(adj_orig_dense_list[t]))
     return adj_time_lists
 
 def prepare_edge_list(df, time_step):
@@ -79,8 +88,9 @@ def prepare_edge_list(df, time_step):
     for _, row in df.iterrows():
         t = int((row.ts - t_min) / t_delta)
         edge_lists[t].append((row.u, row.i))
-        adj_orig_dense_list[t, int(row.u), int(row.i)] = 1
-    adj_time_lists = edge_list_to_coo_matrix(edge_lists)
+        adj_orig_dense_list[t, int(row.u), int(row.i)] = int(1)
+    # adj_time_lists = edge_list_to_coo_matrix(edge_lists, num_node)
+    adj_time_lists = dense_to_sparse(adj_orig_dense_list)
     return adj_time_lists, adj_orig_dense_list
 
 def run(data_name):
@@ -102,5 +112,12 @@ def run(data_name):
 if __name__ == '__main__':
     run('reddit')
     run('wikipedia')
+    # adj_time_list_path = os.path.join("../data", "reddit", "adj_time_list.pickle")
+    # with open(adj_time_list_path, 'rb') as handle:
+    #     adj_time_list = pickle.load(handle,encoding="bytes")
+            
+    # print(adj_time_list[0].max())
+    # print(type(adj_time_list[0]))
+    
 
 
