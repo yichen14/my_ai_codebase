@@ -58,7 +58,7 @@ def get_context_pairs(graphs, adjs):
         print("Computing training pairs ...")
         context_pairs_train = []
         for i in range(len(graphs)):
-            context_pairs_train.append(run_random_walks_n2v(graphs[i], adjs[i], num_walks=10, walk_len=20))
+            context_pairs_train.append(run_random_walks_n2v(graphs[i], adjs[i], num_walks=10, walk_len=5))
 
         return context_pairs_train
 
@@ -144,7 +144,6 @@ class dysat_trainer(base_trainer):
 
         for epoch in pbar:
             self.model.train()
-
             for idx, feed_dict in enumerate(dataloader):
                 feed_dict = to_device(feed_dict, self.device)
                 feed_dict_train, feed_dict_test = split_feed_dict(feed_dict, train_end-train_start, self.test_len)

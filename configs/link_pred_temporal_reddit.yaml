@@ -1,0 +1,37 @@
+name: "link_pred_temporal"
+task: "temporal_link_prediction"
+seed: 321
+
+MODEL:
+  model: "EGCNH"
+
+DATASET:
+  dataset: "reddit"
+  TEMPORAL:
+    use_feat: False
+    test_len: 3
+
+TRAIN:
+  max_epochs: 1500
+  log_interval: 10
+  batch_size: 64
+  initial_lr: 0.01
+  OPTIMIZER:
+    type: "ADAM"
+
+ATTACK:
+  method: "random"
+  ptb_rate: 0.0
+  attack_data_path: "attack_data"
+  new_attack: False
+
+TASK_SPECIFIC:
+  GEOMETRIC:
+    num_features: 184
+    num_nodes: 184
+    inner_prod: False
+    filter_size: 2
+
+LOGGING:
+  log_file: "log.txt"
+  model_file: "model.pt"
