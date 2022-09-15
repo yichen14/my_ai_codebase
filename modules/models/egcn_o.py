@@ -217,7 +217,7 @@ class LP_EGCN_o(EGCN_O):
         Overriding their forward method to return all timesteps
         instead of just the last one
         '''
-
+        torch.cuda.empty_cache()
         for unit in self.GRCU_layers:
             Nodes_list = unit(A_list,Nodes_list)
 

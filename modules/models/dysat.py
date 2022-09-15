@@ -52,7 +52,7 @@ class DySAT(nn.Module):
         self.bceloss = BCEWithLogitsLoss()
 
     def forward(self, graphs):
-
+        torch.cuda.empty_cache()
         # Structural Attention forward
         structural_out = []
         for t in range(0, self.num_time_steps):
@@ -150,6 +150,7 @@ class StructuralAttentionLayer(nn.Module):
         self.xavier_init()
 
     def forward(self, graph):
+        torch.cuda.empty_cache()
         graph = copy.deepcopy(graph)
         edge_index = graph.edge_index
         edge_weight = graph.edge_weight.reshape(-1, 1)
@@ -209,6 +210,7 @@ class TemporalAttentionLayer(nn.Module):
 
 
     def forward(self, inputs):
+        torch.cuda.empty_cache()
         """In:  attn_outputs (of StructuralAttentionLayer at each snapshot):= [N, T, F]"""
         # 1: Add position embeddings to input
         position_inputs = torch.arange(0,self.num_time_steps).reshape(1, -1).repeat(inputs.shape[0], 1).long().to(inputs.device)

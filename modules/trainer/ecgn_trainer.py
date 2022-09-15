@@ -39,6 +39,15 @@ class egcn_trainer(base_trainer):
         pbar = tqdm(range(self.max_epochs))
         start_time = time.time()
 
+        # if torch.cuda.device_count() > 1:
+        #     print("Let's use", torch.cuda.device_count(), "GPUs!")
+        #     # torch.distributed.init_process_group(backend='nccl')
+        #     # torch.cuda.set_device(args.local_rank)
+        #     gpus = [0,1]
+        #     self.model = self.model.cuda()  # Before DistributedDataParallel, put the model to GPU
+        #     # self.model = torch.nn.parallel.DistributedDataParallel(self.model)
+        #     self.model = torch.nn.DataParallel(self.model)
+
         for epoch in pbar:
             self.model.train()
             self.optimizer.zero_grad()
