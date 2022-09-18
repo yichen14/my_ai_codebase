@@ -3,10 +3,10 @@ task: "temporal_link_prediction"
 seed: 321
 
 MODEL:
-  model: "EGCNO"
+  model: "EULER"
 
 DATASET:
-  dataset: "reddit"
+  dataset: "fb"
   TEMPORAL:
     use_feat: False
     test_len: 3

@@ -16,13 +16,15 @@ class Evaluation():
         self.test_metrics = {"AUC": 0.0, "AP": 0.0}
         self.best_val_metrics = {"AUC": 0.0, "AP": 0.0}
         self.best_test_metrics = {"AUC": 0.0, "AP": 0.0}
+        self.best_emb = None
 
-    def logging(self, criterion = "AUC"):
+    def logging(self, emb, criterion = "AUC"):
         if self.val_metrics[criterion] > self.best_val_metrics[criterion]:
             self.best_test_metrics["AUC"] = self.test_metrics["AUC"]
             self.best_test_metrics["AP"] = self.test_metrics["AP"]
             self.best_val_metrics["AUC"] = self.val_metrics["AUC"]
             self.best_val_metrics["AP"] = self.val_metrics["AP"]
+            self.best_emb = emb
     
     def decode(self, src, dst, z):
         dot = (z[src] * z[dst]).sum(dim=1)
@@ -75,7 +77,7 @@ class Evaluation():
         self.test_metrics["AUC"] = np.mean(test_auc_scores)
         self.test_metrics["AP"] = np.mean(test_ap_scores)
 
-        self.logging()
+        self.logging(embs[-1].cpu().detach())
 
 """Evaluation for continuous models"""
 class ContEvaluation():

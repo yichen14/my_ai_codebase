@@ -1,3 +1,4 @@
+from this import d
 from xml.sax.handler import feature_external_ges
 from deeprobust.graph.global_attack import Random
 from deeprobust.graph.data import Dataset, Dpr2Pyg, Pyg2Dpr
@@ -15,6 +16,16 @@ from deeprobust.graph.global_attack import Metattack
 from deeprobust.graph.global_attack import NodeEmbeddingAttack
 from deeprobust.graph.global_attack import DICE
 from scipy.sparse import csr_matrix
+
+def csr_matrix_to_tensor(matrices, num_nodes):
+    adj_orig_dense_list = []
+    for i in range(len(matrices)):
+        data = torch.zeros(num_nodes, num_nodes)
+        graph = matrices[i].tocoo()
+        for row_, col_ in zip(graph.row, graph.col):
+            data[row_,col_] = 1
+        adj_orig_dense_list.append(data)
+    return adj_orig_dense_list
 
 def load_feat_and_label(data_name, data_path):
     label = np.load(os.path.join(data_path, data_name, "label.npy"))
@@ -55,7 +66,7 @@ def node_emb_attack_temporal(cfg, adj_matrix_lst, device):
             node_emb_attack.attack(adj_matrix, n_perturbations = num_modified, attack_type="add_by_remove", seed = cfg.seed, n_candidates=10000)
             attack_data.append(node_emb_attack.modified_adj)
         pickle_path = os.path.join(path, "adj_ptb_{}_test_{}.pickle".format(ptb_rate,test_len))
-        with open(pickle_path, 'ab') as handle:
+        with open(pickle_path, 'wb') as handle:
             pickle.dump(attack_data, handle)
 
     # data already attacked
@@ -106,7 +117,7 @@ def dice_attack_temporal(cfg, adj_matrix_lst, device):
             dice_attack.attack(adj_matrix, labels=torch.zeros(feat_shape).long(), n_perturbations = num_modified)
             attack_data.append(dice_attack.modified_adj)
         pickle_path = os.path.join(path, "adj_ptb_{}_test_{}.pickle".format(ptb_rate,test_len))
-        with open(pickle_path, 'ab') as handle:
+        with open(pickle_path, 'wb') as handle:
             pickle.dump(attack_data, handle)
 
     # data already attacked
@@ -170,7 +181,7 @@ def meta_attack_temporal(cfg, adj_matrix_lst, device):
             attack_data.append(csr_matrix(np.array(model.modified_adj.cpu())))
             torch.cuda.empty_cache()
         pickle_path = os.path.join(path, "adj_ptb_{}_test_{}.pickle".format(ptb_rate,test_len))
-        with open(pickle_path, 'ab') as handle:
+        with open(pickle_path, 'wb') as handle:
             pickle.dump(attack_data, handle)
 
     # data already attacked
@@ -222,7 +233,7 @@ def random_attack_temporal(cfg, adj_matrix_lst, device):
             random_attack.attack(adj_matrix, n_perturbations = num_modified, type=random_method)
             attack_data.append(random_attack.modified_adj)
         pickle_path = os.path.join(path, "adj_ptb_{}_test_{}_{}.pickle".format(ptb_rate, test_len, random_method))
-        with open(pickle_path, 'ab') as handle:
+        with open(pickle_path, 'wb') as handle:
             pickle.dump(attack_data, handle)
 
     # data already attacked
@@ -235,9 +246,13 @@ def random_attack_temporal(cfg, adj_matrix_lst, device):
     assert len(attacked_matrix_lst) == len(adj_matrix_lst) - test_len
     
     for time_step in range(len(adj_matrix_lst) - test_len, len(adj_matrix_lst)):
-            attacked_matrix_lst.append(adj_matrix_lst[time_step])
+        attacked_matrix_lst.append(adj_matrix_lst[time_step])
 
     assert len(attacked_matrix_lst) == len(adj_matrix_lst)
+
+    diff = data_comparison(adj_matrix_lst, attacked_matrix_lst, test_len=test_len, ptb_rate=ptb_rate, num_nodes=cfg.TASK_SPECIFIC.GEOMETRIC.num_features)
+    assert diff == np.float32(ptb_rate)
+    
     return attacked_matrix_lst
 
 def temporal_shift_attack(cfg, adj_matrix_lst, device):
@@ -264,3 +279,12 @@ def temporal_shift_attack(cfg, adj_matrix_lst, device):
 
     return attacked_matrix_lst
 
+def data_comparison(orig_data, attacked_data, test_len, ptb_rate, num_nodes):
+    diff = []
+    orig_dense_data = csr_matrix_to_tensor(orig_data, num_nodes)
+    attacked_dense_data = csr_matrix_to_tensor(attacked_data, num_nodes)
+    for time_step in range(len(orig_dense_data)-test_len):
+        num_edges = np.sum(orig_data[time_step])
+        diff.append(torch.logical_xor(orig_dense_data[time_step], attacked_dense_data[time_step]).sum()/num_edges)
+    #print(np.round(np.mean(diff),1))
+    return np.round(np.mean(diff),1)
