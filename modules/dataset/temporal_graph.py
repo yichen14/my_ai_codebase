@@ -68,15 +68,18 @@ class temporal_graph(torch_geometric.data.Dataset):
         
         adj_time_list_path = os.path.join(get_dataset_root(), data_name, "adj_time_list.pickle")
         with open(adj_time_list_path, 'rb') as handle:
-            self.adj_time_list = pickle.load(handle,encoding="bytes")
-            
-        assert self.adj_time_list[0].max() == 1.0
+            if data_name in ['wikipedia', 'reddit']:
+                self.adj_time_list = pickle.load(handle,encoding="bytes")
+                assert self.adj_time_list[0].max() == 1.0
+            elif data_name in ['enron10', 'dblp', 'fb']:
+                self.adj_time_list = pickle.load(handle, encoding='latin1')
 
         adj_orig_dense_list_path = os.path.join(get_dataset_root(), data_name, "adj_orig_dense_list.pickle")
         with open(adj_orig_dense_list_path, 'rb') as handle:
             self.adj_orig_dense_list = pickle.load(handle,encoding="bytes")
 
         self.num_nodes = self.gen_node_number(self.adj_time_list)
+        
         # self.adj_orig_dense_list = csr_matrix_to_tensor(self.adj_time_list, self.num_nodes)
         # self.adj_orig_dense_list, self.adj_time_list = to_undirect(self.adj_orig_dense_list) # to undirect
         # self.adj_time_list = to_undirect(self.adj_time_list) # to undirect

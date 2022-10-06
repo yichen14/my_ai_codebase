@@ -170,6 +170,16 @@ class dysat_trainer(base_trainer):
 
         logging.info("Best performance: Test AUC {:.3f}, Test AP {:.3f}, Val AUC {:.3f}, Val AP {:.3f}".format(
                 self.cal_metric.best_test_metrics["AUC"], self.cal_metric.best_test_metrics["AP"], self.cal_metric.best_val_metrics["AUC"], self.cal_metric.best_val_metrics["AP"]))
+        
+        # # save best emb to local for visualization and debug
+        # print("saving best embedding..")
+        # save_path = os.path.join(get_dataset_root(), "best_embedding", "DYSAT", "wiki_{}_{}.pickle".format(self.cfg.ATTACK.ptb_rate, self.cfg.ATTACK.method))
+        # with open(save_path, 'wb') as handle:
+        #     pickle.dump(self.cal_metric.best_emb, handle)
+        # save_path = os.path.join(get_dataset_root(), "best_embedding", "DYSAT", "wiki_tr_{}_{}.pickle".format(self.cfg.ATTACK.ptb_rate, self.cfg.ATTACK.method))
+        # with open(save_path, 'wb') as handle:
+        #     pickle.dump(self.cal_metric.best_tr_embs, handle)
+        # print("saving done")
 
         return self.cal_metric.best_test_metrics["AUC"], self.cal_metric.best_test_metrics["AP"]
 

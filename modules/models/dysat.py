@@ -118,6 +118,8 @@ class DySAT(nn.Module):
             pos_loss = self.bceloss(pos_score, torch.ones_like(pos_score))
             neg_loss = self.bceloss(neg_score, torch.ones_like(neg_score))
             graphloss = pos_loss + self.neg_weight*neg_loss
+            # print("pos_loss", pos_loss)
+            # print("neg_loss", self.neg_weight*neg_loss)
             self.graph_loss += graphloss
         return self.graph_loss
 
