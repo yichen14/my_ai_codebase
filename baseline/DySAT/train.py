@@ -81,6 +81,7 @@ def train(args, dataloader, model, opt, train_edges_pos, train_edges_neg, val_ed
     model.load_state_dict(torch.load("./model_checkpoints/model.pt"))
     model.eval()
     emb = model(feed_dict["graphs"])[:, -2, :].detach().cpu().numpy()
+    
     val_results, test_results, _, _ = evaluate_classifier(train_edges_pos,
                                                         train_edges_neg,
                                                         val_edges_pos, 
@@ -102,10 +103,10 @@ NUM_TESTS = 5
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--time_steps', type=int, nargs='?', default=16,
+    parser.add_argument('--time_steps', type=int, nargs='?', default=11,
                         help="total time steps used for train, eval and test")
     # Experimental settings.
-    parser.add_argument('--dataset', type=str, nargs='?', default='Enron',
+    parser.add_argument('--dataset', type=str, nargs='?', default='enron10',
                         help='dataset name')
     parser.add_argument('--GPU_ID', type=int, nargs='?', default=0,
                         help='GPU_ID (0/1 etc.)')
@@ -158,18 +159,20 @@ if __name__ == "__main__":
                         help='Window for temporal attention (default : -1 => full)')
     # Attack params
     parser.add_argument("--att", type=float, default=0)
-    parser.add_argument("--test_len", type=int, default=2)
+    parser.add_argument("--test_len", type=int, default=3)
     args = parser.parse_args()
     print(args)
 
     #graphs, feats, adjs = load_graphs(args.dataset)
     #graphs, adjs = load_graphs(args.dataset)
     graphs, adjs = load_graphs_new(args.dataset, args.att, args.test_len)
+    time_steps = len(adjs)
+    num_nodes = adjs[-1].shape[0]
     if args.featureless == True:
-        feats = [scipy.sparse.identity(adjs[args.time_steps - 1].shape[0]).tocsr()[range(0, x.shape[0]), :] for x in adjs if
-             x.shape[0] <= adjs[args.time_steps - 1].shape[0]]
-
-    assert args.time_steps <= len(adjs), "Time steps is illegal"
+        # feats = [scipy.sparse.identity(adjs[args.time_steps - 1].shape[0]).tocsr()[range(0, x.shape[0]), :] for x in adjs if x.shape[0] <= adjs[args.time_steps - 1].shape[0]]
+        feats = [scipy.sparse.identity(num_nodes).tocsr() for i in range(time_steps)]
+        
+    # assert args.time_steps <= len(adjs), "Time steps is illegal"
 
     context_pairs_train = get_context_pairs(graphs, adjs)
 
@@ -182,9 +185,9 @@ if __name__ == "__main__":
 
     # Create the adj_train so that it includes nodes from (t+1) but only edges from t: this is for the purpose of
     # inductive testing.
-    new_G = inductive_graph(graphs[args.time_steps-2], graphs[args.time_steps-1])
-    graphs[args.time_steps-1] = new_G
-    adjs[args.time_steps-1] = nx.adjacency_matrix(new_G)
+    # new_G = inductive_graph(graphs[time_steps-2], graphs[time_steps-1])
+    # graphs[args.time_steps-1] = new_G
+    # adjs[args.time_steps-1] = nx.adjacency_matrix(new_G)
 
     # build dataloader and model
     device = torch.device("cuda:0")
@@ -195,7 +198,8 @@ if __name__ == "__main__":
                             num_workers=10, 
                             collate_fn=MyDataset.collate_fn)
     #dataloader = NodeMinibatchIterator(args, graphs, feats, adjs, context_pairs_train, device) 
-    model = DySAT(args, feats[0].shape[1], args.time_steps).to(device)
+    
+    model = DySAT(args, feats[0].shape[1], time_steps).to(device)
     opt = torch.optim.AdamW(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
 
     # Training 

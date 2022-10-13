@@ -31,26 +31,29 @@ def get_context_pairs(graphs, adjs):
 
 def get_evaluation_data(graphs):
     """ Load train/val/test examples to evaluate link prediction performance"""
-    eval_idx = len(graphs) - 2
-    eval_graph = graphs[eval_idx] # Last second for val
-    next_graph = graphs[eval_idx+1] # Last one for test
+    eval_idx = len(graphs) - 3
+    eval_graphs = [graphs[eval_idx], graphs[eval_idx+1]] # Last second for val
+    next_graph = graphs[eval_idx+2] # Last one for test
+    print('eval_graphs:', eval_graphs[0], eval_graphs[1])
+    print('test_graph:', next_graph)
+    
     print("Generating eval data ....")
     train_edges, train_edges_false, val_edges, val_edges_false, test_edges, test_edges_false = \
-        create_data_splits(eval_graph, next_graph, val_mask_fraction=0.2, 
+        create_data_splits(eval_graphs, next_graph, val_mask_fraction=0.2, 
                             test_mask_fraction=0.6)
 
     return train_edges, train_edges_false, val_edges, val_edges_false, test_edges, test_edges_false
 
-def create_data_splits(graph, next_graph, val_mask_fraction=0.2, test_mask_fraction=0.6):
+def create_data_splits(graphs, next_graph, val_mask_fraction=0.2, test_mask_fraction=0.6):
     edges_next = np.array(list(nx.Graph(next_graph).edges()))
     edges_positive = []   # Constraint to restrict new links to existing nodes.
     for e in edges_next:
-        if graph.has_node(e[0]) and graph.has_node(e[1]):
-            edges_positive.append(e)
+        for graph in graphs:
+            if graph.has_node(e[0]) and graph.has_node(e[1]):
+                edges_positive.append(e)
     edges_positive = np.array(edges_positive) # [E, 2]
     edges_negative = negative_sample(edges_positive, graph.number_of_nodes(), next_graph)
     
-
     train_edges_pos, test_pos, train_edges_neg, test_neg = train_test_split(edges_positive, 
             edges_negative, test_size=val_mask_fraction+test_mask_fraction)
     val_edges_pos, test_edges_pos, val_edges_neg, test_edges_neg = train_test_split(test_pos, 

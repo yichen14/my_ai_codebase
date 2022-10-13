@@ -59,3 +59,13 @@ dblp
 AUC Mean 80.6908, SD 1.7008
  AP Mean 84.4318, SD 0.3915 
 
+enron10
+===== ptb_rate 0.0000; test_len 3 =====
+AUC Mean 90.0719, SD 0.2190
+ AP Mean 87.2707, SD 0.2242 
+
+enron10
+===== ptb_rate 0.0000; test_len 3 =====
+AUC Mean 89.4947, SD 0.1161
+ AP Mean 89.2873, SD 0.1752 
+
