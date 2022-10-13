@@ -1,20 +1,24 @@
 from xml.sax.handler import feature_external_ges
-from deeprobust.graph.global_attack import Random
-from deeprobust.graph.data import Dataset, Dpr2Pyg, Pyg2Dpr
 import os
 import torch
 import pickle
 import random
 from tqdm import tqdm, trange
 import numpy as np
-from utils import get_dataset_root
 import logging
+import random
+
+from utils import get_dataset_root
+from scipy.sparse import csr_matrix
+
+from deeprobust.graph.global_attack import Random
+from deeprobust.graph.data import Dataset, Dpr2Pyg, Pyg2Dpr
 from deeprobust.graph.defense import GCN
 from deeprobust.graph.global_attack import MetaApprox
 from deeprobust.graph.global_attack import Metattack
 from deeprobust.graph.global_attack import NodeEmbeddingAttack
 from deeprobust.graph.global_attack import DICE
-from scipy.sparse import csr_matrix
+
 
 def load_feat_and_label(data_name, data_path):
     label = np.load(os.path.join(data_path, data_name, "label.npy"))
@@ -148,6 +152,9 @@ def meta_attack_temporal(cfg, adj_matrix_lst, device):
     path = os.path.join(get_dataset_root(), attack_data_path, "{}_ptb_rate_{}_metaattack".format(cfg.DATASET.dataset, ptb_rate))
     if cfg.ATTACK.new_attack or not os.path.exists(os.path.join(path, "adj_ptb_{}_test_{}.pickle".format(ptb_rate,test_len))):
         # generate attacked data
+        # print(os.path.join(path, "adj_ptb_{}_test_{}.pickle".format(ptb_rate,test_len)))
+        # print(cfg.ATTACK.new_attack)
+        # exit()
         logging.info("Meta attack on dataset: {} ptb_rate: {}".format(cfg.DATASET.dataset, ptb_rate))
         if not os.path.exists(path):
             os.mkdir(path)
@@ -202,7 +209,7 @@ def random_attack_temporal(cfg, adj_matrix_lst, device):
     ptb_rate = cfg.ATTACK.ptb_rate
     test_len = cfg.DATASET.TEMPORAL.test_len
 
-    random_method = "add" # set default random attack method here
+    random_method = "remove" # set default random attack method here
 
     if ptb_rate == 0.0:
         return adj_matrix_lst

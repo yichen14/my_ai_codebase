@@ -5,6 +5,9 @@ import networkx as nx
 from collections import defaultdict
 import copy
 import scipy
+from scipy.sparse import csr_matrix
+import os
+import pickle
 
 import torch
 import torch.nn as nn
@@ -14,6 +17,7 @@ from .base_trainer import base_trainer
 from utils.metrics import Evaluation
 from utils.minibatch import MyDataset
 from utils.random_walk import Graph_RandomWalk
+from utils import get_dataset_root
 
 """
 Parts of this code file are derive from 
@@ -26,6 +30,8 @@ def run_random_walks_n2v(graph, adj, num_walks, walk_len):
         Out: (target, context) pairs from random walk sampling using 
         the sampling strategy of node2vec (deepwalk)"""
     nx_G = nx.Graph()
+    # TypeError: 'coo_matrix' object is not subscriptable
+    adj = adj.tocsr()
     for e in graph.edges():
         nx_G.add_edge(e[0], e[1])
     for edge in graph.edges():
@@ -52,7 +58,7 @@ def get_context_pairs(graphs, adjs):
         print("Computing training pairs ...")
         context_pairs_train = []
         for i in range(len(graphs)):
-            context_pairs_train.append(run_random_walks_n2v(graphs[i], adjs[i], num_walks=10, walk_len=20))
+            context_pairs_train.append(run_random_walks_n2v(graphs[i], adjs[i], num_walks=10, walk_len=5))
 
         return context_pairs_train
 
@@ -138,7 +144,6 @@ class dysat_trainer(base_trainer):
 
         for epoch in pbar:
             self.model.train()
-
             for idx, feed_dict in enumerate(dataloader):
                 feed_dict = to_device(feed_dict, self.device)
                 feed_dict_train, feed_dict_test = split_feed_dict(feed_dict, train_end-train_start, self.test_len)
@@ -165,6 +170,16 @@ class dysat_trainer(base_trainer):
 
         logging.info("Best performance: Test AUC {:.3f}, Test AP {:.3f}, Val AUC {:.3f}, Val AP {:.3f}".format(
                 self.cal_metric.best_test_metrics["AUC"], self.cal_metric.best_test_metrics["AP"], self.cal_metric.best_val_metrics["AUC"], self.cal_metric.best_val_metrics["AP"]))
+        
+        # # save best emb to local for visualization and debug
+        # print("saving best embedding..")
+        # save_path = os.path.join(get_dataset_root(), "best_embedding", "DYSAT", "wiki_{}_{}.pickle".format(self.cfg.ATTACK.ptb_rate, self.cfg.ATTACK.method))
+        # with open(save_path, 'wb') as handle:
+        #     pickle.dump(self.cal_metric.best_emb, handle)
+        # save_path = os.path.join(get_dataset_root(), "best_embedding", "DYSAT", "wiki_tr_{}_{}.pickle".format(self.cfg.ATTACK.ptb_rate, self.cfg.ATTACK.method))
+        # with open(save_path, 'wb') as handle:
+        #     pickle.dump(self.cal_metric.best_tr_embs, handle)
+        # print("saving done")
 
         return self.cal_metric.best_test_metrics["AUC"], self.cal_metric.best_test_metrics["AP"]
 

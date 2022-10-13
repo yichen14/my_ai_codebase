@@ -21,6 +21,7 @@ _C.meta_training_num_classes = -1
 _C.meta_testing_num_classes = -1
 _C.input_dim = (3, 32, 32)
 _C.save_model = False
+_C.device = 0
 
 #######################
 # DL System Setting
@@ -298,6 +299,9 @@ def update_cfg_from_args(cfg, args):
 
     if args.model_file is not None:
         cfg.LOGGING.model_file = args.model_file
+    
+    if args.device is not None:
+        cfg.device = args.device
 
     cfg.freeze()
     

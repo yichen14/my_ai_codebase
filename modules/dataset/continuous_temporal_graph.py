@@ -72,15 +72,19 @@ class continuous_temporal_graph(torch_geometric.data.Dataset):
         attack_func = attack.dispatcher(cfg)
 
         self.val_len = self.cfg.DATASET.TEMPORAL.val_len
-        self.test_len = self.cfg.DATASET.TEMPORAL.test_len
+        self.test_len = self.cfg.DATASET.TEMPORAL.test_len - self.val_len
+
+        self.lr = self.cfg.TRAIN.initial_lr
+        self.ptb_rate = self.cfg.ATTACK.ptb_rate
+        self.attack_method = self.cfg.ATTACK.method
 
         # generate g_df, n_feat, e_feat
         self.run(data_name, use_edge_feat, attack_flag, attack_func)
 
         process_path = os.path.join(get_process_root())
-        self.g_df = pd.read_csv('{}/ml_{}.csv'.format(process_path, data_name))
-        self.n_feat = np.load('{}/ml_{}_node.npy'.format(process_path, data_name))
-        self.e_feat = np.load('{}/ml_{}.npy'.format(process_path, data_name))
+        self.g_df = pd.read_csv('{}/ml_{}_{}_{}_lr_{}.csv'.format(process_path, data_name, self.attack_method, self.ptb_rate, self.lr))
+        self.n_feat = np.load('{}/ml_{}_{}_{}_lr_{}_node.npy'.format(process_path, data_name, self.attack_method, self.ptb_rate, self.lr))
+        self.e_feat = np.load('{}/ml_{}_{}_{}_lr_{}.npy'.format(process_path, data_name, self.attack_method, self.ptb_rate, self.lr))
 
         self.load_data()
 
@@ -145,9 +149,10 @@ class continuous_temporal_graph(torch_geometric.data.Dataset):
 
     def run(self, data_name, use_edge_feat, attack_flag = False, attack_func = None):
         process_path = os.path.join(get_process_root())
-        OUT_DF = '{}/ml_{}.csv'.format(process_path, data_name)
-        OUT_NODE_FEAT = '{}/ml_{}_node.npy'.format(process_path, data_name)
-        OUT_FEAT = '{}/ml_{}.npy'.format(process_path, data_name)
+        OUT_DF = '{}/ml_{}_{}_{}_lr_{}.csv'.format(process_path, data_name, self.attack_method, self.ptb_rate, self.lr)
+        OUT_NODE_FEAT = '{}/ml_{}_{}_{}_lr_{}_node.npy'.format(process_path, data_name, self.attack_method, self.ptb_rate, self.lr)
+        OUT_FEAT = '{}/ml_{}_{}_{}_lr_{}.npy'.format(process_path, data_name, self.attack_method, self.ptb_rate, self.lr)
+        print(OUT_DF)
         
         df = self.preprocess(data_name, attack_flag, attack_func)
         new_df = self.reindex(df)
