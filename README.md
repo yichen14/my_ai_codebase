@@ -3,3 +3,17 @@ The major structure of this codebase is based on Roger's dl_codebase (https://gi
 
 ## Contained Projects:
 - Robust Graph Learning on Stochastic Temporal Graphs
+
+## Data:
+
+## Attack:
+
+## Baseline:
+
+### Summary:
+
+(table)
+
+### Usage:
+
+* xxx: `python xxx -config xxx`
