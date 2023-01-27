@@ -16,7 +16,7 @@ This repository contains source code for the Robust Graph Learning project.
 
 #### Static GNNs:
 
-- GAE:https://github.com/DaehanKim/vgae_pytorch
+- GAE: https://github.com/DaehanKim/vgae_pytorch
 - VGAE: https://github.com/DaehanKim/vgae_pytorch
 
 #### Discrete Dynamics GNNs:
