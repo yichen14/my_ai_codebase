@@ -260,7 +260,7 @@ class temporal_graph(torch_geometric.data.Dataset):
             adj_tuple = sparse_to_tuple(adj)
             edges = adj_tuple[0]
             pos_edges_l.append(edges)
-            false_edges_l.append(negative_sampling(torch.Tensor(edges.T), adj.shape[0]).numpy().T)
+            false_edges_l.append(negative_sampling(torch.Tensor(edges.T), adj.shape[0]*100).numpy().T)
             # false_edges_l.append(None)
 
         # NOTE: these edge lists only contain single direction of edge!

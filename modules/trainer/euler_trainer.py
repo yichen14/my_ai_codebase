@@ -11,6 +11,7 @@ import torch.nn as nn
 from torch_geometric.utils import negative_sampling
 import pickle
 import os
+import numpy as np
 
 class euler_trainer(base_trainer):
     def __init__(self, cfg, model, criterion, dataset_module, optimizer, device) -> None:
@@ -56,10 +57,17 @@ class euler_trainer(base_trainer):
             
             neg_edges = []
             for i in range(train_start+1, train_end):
-                neg_edges.append(negative_sampling(edge_idx_list[i], zs[i].size(0), edge_idx_list[i].shape[1]*100).T)
-
+                neg_sample = negative_sampling(edge_idx_list[i], zs[i].size(0), edge_idx_list[i].shape[1]*100).T
+                neg_edges.append(neg_sample)
+            
+            neg_edges_l = []
+            for i in range(train_end, seq_end):
+                neg_sample = negative_sampling(edge_idx_list[i], zs[0].size(0), edge_idx_list[i].shape[1]*100).T
+                neg_edges_l.append(neg_sample)
+            # print(neg_edges_l[0].shape)
+            
+                
             loss = self.model.loss_fn(edge_idx_list[train_start+1:train_end], neg_edges, zs[:-1])
-
             loss.backward()
             self.optimizer.step()
 
@@ -70,8 +78,8 @@ class euler_trainer(base_trainer):
                 x_in_testing = torch.stack([x_in[train_end-1] for i in range(test_len)])
                 edge_list_testing = [edge_idx_list[train_end-1] for i in range(test_len)]
                 self.inference(x_in_testing, edge_list_testing, adj_orig_dense_list[train_end:seq_end], 
-                             pos_edges_l[train_end:seq_end], neg_edges_l[train_end:seq_end], zs[-1])
-                pbar.set_description('Epoch {}/{}, Loss {:.3f}, Test AUC {:.3f}, Test AP {:.3f}, Val AUC {:.3f}, Val AP {:.3f}, Time {:.1f}s'.format(epoch, self.max_epochs, loss.item(),self.cal_metric.test_metrics["AUC"], 
+                             pos_edges_l[train_end:seq_end], neg_edges_l, zs)
+                pbar.set_description('Epoch {}/{}, Loss {:.3f}, Test AUC {:.3f}, Test AP {:.3f}, Val AUC {:.3f}, Val AP {:.3f}, Time {:.1f}s'.format(epoch, self.max_epochs, loss.item(), self.cal_metric.test_metrics["AUC"], 
                     self.cal_metric.test_metrics["AP"], self.cal_metric.val_metrics["AUC"], self.cal_metric.val_metrics["AP"], time.time() - start_time))
 
         logging.info("Best performance: Test AUC {:.3f}, Test AP {:.3f}, Val AUC {:.3f}, Val AP {:.3f}".format(
@@ -82,16 +90,22 @@ class euler_trainer(base_trainer):
         save_path = os.path.join(get_dataset_root(), "best_embedding", "Euler", "enron10_{}_{}.pickle".format(self.cfg.ATTACK.ptb_rate, self.cfg.ATTACK.method))
         with open(save_path, 'wb') as handle:
             pickle.dump(self.cal_metric.best_emb, handle)
+        save_path = os.path.join(get_dataset_root(), "best_embedding", "Euler", "enron10_tr_{}_{}.pickle".format(self.cfg.ATTACK.ptb_rate, self.cfg.ATTACK.method))
+        with open(save_path, 'wb') as handle:
+            pickle.dump(self.cal_metric.best_tr_embs, handle)
         print("saving done")
 
+        print(self.cal_metric.best_test_metrics["F_1"])
         return self.cal_metric.best_test_metrics["AUC"], self.cal_metric.best_test_metrics["AP"]
 
     @torch.no_grad()
-    def inference(self, x_in, edge_list_testing, adj_orig_dense_list, pos_edges_l, neg_edges_l, z):
+    def inference(self, x_in, edge_list_testing, adj_orig_dense_list, pos_edges_l, neg_edges_l, training_zs):
+        # add training time embedding for visualization 
         self.model.eval()
         zs = self.model(x_in, edge_list_testing)
         # zs = [z for _ in range(3)]
         self.cal_metric.update(pos_edges_l
                                 , neg_edges_l
                                 , adj_orig_dense_list
-                                , zs)
+                                , zs
+                                )
