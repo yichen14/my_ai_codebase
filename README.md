@@ -11,6 +11,14 @@ This repository contains source code for the Robust Graph Learning project.
 - Reddit: http://snap.stanford.edu/jodie/reddit.csv
 
 ## Attack:
+We use [DeepRobust](https://github.com/DSE-MSU/DeepRobust) to perform most attacks.
+[DeepRobust Documentation](https://deeprobust.readthedocs.io/en/latest/)
+Attack methods integrated in our framework:
+- [Random Attack](https://deeprobust.readthedocs.io/en/latest/source/deeprobust.graph.global_attack.html#module-deeprobust.graph.global_attack.random_attack)
+- [Meta Attack](https://deeprobust.readthedocs.io/en/latest/source/deeprobust.graph.global_attack.html#module-deeprobust.graph.global_attack.mettack)
+- [Dice Attack](https://deeprobust.readthedocs.io/en/latest/source/deeprobust.graph.global_attack.html#module-deeprobust.graph.global_attack.dice)
+- [Node Attack](https://deeprobust.readthedocs.io/en/latest/graph/node_embedding.html?highlight=node%20attack#node-embedding-attack)
+- Temporal Attack (our own method)
 
 ## Baseline:
 
