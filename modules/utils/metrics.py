@@ -17,7 +17,11 @@ class Evaluation():
         self.val_metrics = {"AUC": 0.0, "AP": 0.0}
         self.test_metrics = {"AUC": 0.0, "AP": 0.0, "F_1": 0.0, "HIT@10": 0.0}
         self.best_val_metrics = {"AUC": 0.0, "AP": 0.0}
+<<<<<<< HEAD
         self.best_test_metrics = {"AUC": 0.0, "AP": 0.0, "F_1": 0.0, "HIT@10": 0.0}
+=======
+        self.best_test_metrics = {"AUC": 0.0, "AP": 0.0}
+>>>>>>> 512cf2c4f245a53776bbb43ccf21d68c04e80052
         self.best_emb = None
         self.best_tr_embs = None
 
@@ -91,10 +95,14 @@ class Evaluation():
 
         self.test_metrics["AUC"] = np.mean(test_auc_scores)
         self.test_metrics["AP"] = np.mean(test_ap_scores)
+<<<<<<< HEAD
         self.test_metrics["F_1"] = np.mean(test_f_1_socres)
         self.test_metrics["HIT@10"] = np.mean(test_hit_10_score)
         # print(self.test_metrics["F_1"])
         print(self.test_metrics["HIT@10"])
+=======
+
+>>>>>>> 512cf2c4f245a53776bbb43ccf21d68c04e80052
         self.logging(embs[-1].cpu().detach())
 
 """Evaluation for continuous models"""

@@ -11,7 +11,11 @@ import torch.nn as nn
 from torch_geometric.utils import negative_sampling
 import pickle
 import os
+<<<<<<< HEAD
 import numpy as np
+=======
+from utils import get_dataset_root
+>>>>>>> 512cf2c4f245a53776bbb43ccf21d68c04e80052
 
 class euler_trainer(base_trainer):
     def __init__(self, cfg, model, criterion, dataset_module, optimizer, device) -> None:
@@ -84,6 +88,16 @@ class euler_trainer(base_trainer):
 
         logging.info("Best performance: Test AUC {:.3f}, Test AP {:.3f}, Val AUC {:.3f}, Val AP {:.3f}".format(
                 self.cal_metric.best_test_metrics["AUC"], self.cal_metric.best_test_metrics["AP"], self.cal_metric.best_val_metrics["AUC"], self.cal_metric.best_val_metrics["AP"]))
+        
+        # save best emb to local for visualization and debug
+        print("saving best embedding..")
+        save_path = os.path.join(get_dataset_root(), "best_embedding", "Euler", "wiki_{}_{}.pickle".format(self.cfg.ATTACK.ptb_rate, self.cfg.ATTACK.method))
+        with open(save_path, 'wb') as handle:
+            pickle.dump(self.cal_metric.best_emb, handle)
+        save_path = os.path.join(get_dataset_root(), "best_embedding", "Euler", "wiki_tr_{}_{}.pickle".format(self.cfg.ATTACK.ptb_rate, self.cfg.ATTACK.method))
+        with open(save_path, 'wb') as handle:
+            pickle.dump(self.cal_metric.best_tr_embs, handle)
+        print("saving done")
 
         # save best emb to local for visualization and debug
         print("saving best embedding..")
@@ -102,8 +116,14 @@ class euler_trainer(base_trainer):
     def inference(self, x_in, edge_list_testing, adj_orig_dense_list, pos_edges_l, neg_edges_l, training_zs):
         # add training time embedding for visualization 
         self.model.eval()
+        
         zs = self.model(x_in, edge_list_testing)
+<<<<<<< HEAD
         # zs = [z for _ in range(3)]
+=======
+        # print('zs:', len(zs))
+        
+>>>>>>> 512cf2c4f245a53776bbb43ccf21d68c04e80052
         self.cal_metric.update(pos_edges_l
                                 , neg_edges_l
                                 , adj_orig_dense_list

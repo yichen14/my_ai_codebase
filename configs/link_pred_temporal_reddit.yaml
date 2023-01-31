@@ -3,7 +3,11 @@ task: "temporal_link_prediction"
 seed: 321
 
 MODEL:
+<<<<<<< HEAD
   model: "EULER"
+=======
+  model: "EGCNH"
+>>>>>>> 512cf2c4f245a53776bbb43ccf21d68c04e80052
 
 DATASET:
   dataset: "reddit"
@@ -15,20 +19,33 @@ TRAIN:
   max_epochs: 1500
   log_interval: 10
   batch_size: 64
+<<<<<<< HEAD
   initial_lr: 0.02
+=======
+  initial_lr: 0.01
+>>>>>>> 512cf2c4f245a53776bbb43ccf21d68c04e80052
   OPTIMIZER:
     type: "ADAM"
 
 ATTACK:
   method: "random"
+<<<<<<< HEAD
   ptb_rate: 0.5
+=======
+  ptb_rate: 0.0
+>>>>>>> 512cf2c4f245a53776bbb43ccf21d68c04e80052
   attack_data_path: "attack_data"
   new_attack: False
 
 TASK_SPECIFIC:
   GEOMETRIC:
+<<<<<<< HEAD
     num_features: 10984
     num_nodes: 10984
+=======
+    num_features: 184
+    num_nodes: 184
+>>>>>>> 512cf2c4f245a53776bbb43ccf21d68c04e80052
     inner_prod: False
     filter_size: 2
 

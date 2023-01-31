@@ -193,6 +193,7 @@ class LP_EGCN_h(EGCN_h):
         Overriding their forward method to return all timesteps
         instead of just the last one
         '''
+        torch.cuda.empty_cache()
         masks = [torch.zeros(A_list[0].size(0),1).to(self.device) for _ in range(len(A_list))]
 
         for unit in self.GRCU_layers:

@@ -15,9 +15,6 @@ def dispatcher(cfg):
         if encoder == "linear":
             from .encoders import VariationalLinearEncoder as encoder_cls
         return VGAE_cls, encoder_cls
-    if model_name == "GCN":
-        from models.GCN import GCN as GCN_cls
-        return GCN_cls
 
     # Discrete Temporal Network 
     if model_name == "VGRNN":

@@ -19,10 +19,11 @@ import os
 def setup(cfg, args):
     # get device
     if args.gpu:
-        device = args.device 
+        device = args.device
     else:
         device = torch.device('cpu')
     # device = utils.guess_device()
+    os.environ['CUDA_VISIBLE_DEVICES'] = '0,1'
 
     # set up dataset
     data = dataset.dispatcher(cfg, device)
@@ -31,7 +32,7 @@ def setup(cfg, args):
     # set up model
     if cfg.MODEL.encoder != "none":
         model_cls, encoder_cls = models.dispatcher(cfg)
-        model = model_cls(encoder_cls(cfg)).to(device)
+        model = model_cls(encoder_cls(cfg).to(device)).to(device)
     elif cfg.MODEL.model == "DYSAT":
         model_cls = models.dispatcher(cfg)
         test_len = cfg.DATASET.TEMPORAL.test_len

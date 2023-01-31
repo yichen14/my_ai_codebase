@@ -1,6 +1,10 @@
 __pycache__
 data
 scripts
+script.py
 trained_model
 baseline
 continuous_processed
+temporal_*
+raw_data
+visualization_*
