@@ -41,10 +41,6 @@ Attack methods integrated in our framework:
 
 - Pro-GNN: https://github.com/ChandlerBang/Pro-GNN
 
-## Summary:
-
-(table)
-
 ## Usage:
 
 * Using config file to train: `python3 entries/train.py --cfg ./configs/link_pred_temporal_dblp.yaml`
