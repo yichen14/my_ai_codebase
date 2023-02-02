@@ -1,6 +1,11 @@
 # Robust Graph Learning  
 This repository contains source code for the Robust Graph Learning project.
 
+## TODO:
+
+* Add ranking metrics, and test all baselines (static, dynamic, cont);
+* Test reddit/wiki results, to resolve OOM issues;
+* Tables reporting optimal hyperparameters for each datasets.
 
 ## Data:
 
