@@ -3,7 +3,7 @@ This repository contains source code for the Robust Graph Learning project.
 
 ## TODO:
 
-* Add ranking metrics, and test all baselines (static, dynamic, cont) [Recal@k, NDCG@k];
+* Add ranking metrics, and test all baselines (static, dynamic, cont) [Recall@k, NDCG@k];
 * Test reddit/wiki results, to resolve OOM issues;
 * Tables reporting optimal hyperparameters for each datasets.
 
