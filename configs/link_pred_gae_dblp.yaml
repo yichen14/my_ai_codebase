@@ -1,17 +1,9 @@
 name: "link_pred_gae"
 task: "static_link_prediction"
-<<<<<<< HEAD
 
 MODEL:
   model: "GAE"
   encoder: "GCN"
-=======
-device: 0
-
-MODEL:
-  model: "GAE"
-  encoder: "RGCN"
->>>>>>> 512cf2c4f245a53776bbb43ccf21d68c04e80052
 
 DATASET:
   dataset: "dblp"
@@ -29,11 +21,7 @@ TRAIN:
     type: "ADAM"
 
 ATTACK:
-<<<<<<< HEAD
   method: "meta"
-=======
-  method: "random"
->>>>>>> 512cf2c4f245a53776bbb43ccf21d68c04e80052
   ptb_rate: 0.0
   attack_data_path: "attack_data"
   new_attack: False
@@ -41,10 +29,6 @@ ATTACK:
 TASK_SPECIFIC:
   GEOMETRIC:
     num_features: 315
-<<<<<<< HEAD
-=======
-    num_nodes: 315
->>>>>>> 512cf2c4f245a53776bbb43ccf21d68c04e80052
 
 LOGGING:
   log_file: "log.txt"
