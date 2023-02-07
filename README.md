@@ -50,19 +50,15 @@ Attack methods integrated in our framework:
 
 The following table shows the hyperparameter setting for each baseline model. 
 
-\begin{table}[]
-\begin{tabular}{|c|c|c|c|}
-\hline
- & \textbf{max\_epochs} & \textbf{learning rate} & \textbf{Others} \\ \hline
-\textbf{GAE} & 1500 & \begin{tabular}[c]{@{}c@{}}enron10: 0.0001;\\ dblp: 0.0001;\\ fb: 0.01\end{tabular} &  \\ \hline
-\textbf{VGAE} & 1500 & \begin{tabular}[c]{@{}c@{}}enron10: 0.0001;\\ dblp: 0.0001;\\ fb: 0.01\end{tabular} &  \\ \hline
-\textbf{EGCN-H} & \begin{tabular}[c]{@{}c@{}}For enron10, dblp, fb: 1500;\\ For wiki, reddit: 800\end{tabular} & \begin{tabular}[c]{@{}c@{}}enron10: 0.0001;\\ dblp: 0.005;\\ fb: 0.005\end{tabular} &  \\ \hline
-\textbf{EGCN-O} & \begin{tabular}[c]{@{}c@{}}For enron10, dblp, fb: 1500;\\ For wiki, reddit: 800\end{tabular} & \begin{tabular}[c]{@{}c@{}}enron10: 0.001;\\ dblp: 0.001;\\ fb: 0.001\end{tabular} &  \\ \hline
-\textbf{EULER} & 1500 & \begin{tabular}[c]{@{}c@{}}enron10: 0.02;\\ dblp: 0.02;\\ fb: 0.02\end{tabular} &  \\ \hline
-\textbf{DySAT} & \begin{tabular}[c]{@{}c@{}}For enron10, dblp, fb: 100;\\ For wiki, reddit: 50\end{tabular} & \begin{tabular}[c]{@{}c@{}}enron10: 0.001;\\ dblp: 0.0005;\\ fb: 0.0005\end{tabular} & \begin{tabular}[c]{@{}c@{}}For enron10, dblp, fb: walk\_len=20;\\ For wiki, reddit: walk\_len=5, runs=5\end{tabular} \\ \hline
-\textbf{TGAT} & 50 & \begin{tabular}[c]{@{}c@{}}enron10: 0.0001;\\ dblp: 0.0001;\\ fb: 0.001\end{tabular} &  \\ \hline
-\end{tabular}
-\end{table}
+|        |                     max_epochs                     |               learning rate              |                                  Others                                  |
+|:------:|:--------------------------------------------------:|:----------------------------------------:|:------------------------------------------------------------------------:|
+|   GAE  |                        1500                        |  enron10: 0.0001; dblp: 0.0001; fb: 0.01 |                                                                          |
+|  VGAE  |                        1500                        |  enron10: 0.0001; dblp: 0.0001; fb: 0.01 |                                                                          |
+| EGCN-H | For enron10, dblp, fb: 1500; For wiki, reddit: 800 |  enron10: 0.0001; dblp: 0.005; fb: 0.005 |                                                                          |
+| EGCN-O | For enron10, dblp, fb: 1500; For wiki, reddit: 800 |  enron10: 0.001; dblp: 0.001; fb: 0.001  |                                                                          |
+|  EULER |                        1500                        |    enron10: 0.02; dblp: 0.02; fb: 0.02   |                                                                          |
+|  DySAT |  For enron10, dblp, fb: 100; For wiki, reddit: 50  | enron10: 0.001; dblp: 0.0005; fb: 0.0005 | For enron10, dblp, fb: walk_len=20; For wiki, reddit: walk_len=5, runs=5 |
+|  TGAT  |                         50                         | enron10: 0.0001; dblp: 0.0001; fb: 0.001 |                                                                          |
 
 ## Usage:
 
