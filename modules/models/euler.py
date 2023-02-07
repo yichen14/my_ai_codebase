@@ -172,6 +172,7 @@ class EulerGCN(nn.Module):
         
         dot = (self.drop(z[src]) * self.drop(z[dst])).sum(dim=1)
         logits = self.sig(dot)
+        # logits = (logits>0.5).float()
 
         if as_probs:
             return self.__logits_to_probs(logits)
@@ -184,11 +185,19 @@ class EulerGCN(nn.Module):
     '''
     def calc_loss(self, t_scores, f_scores):
         EPS = 1e-6
+<<<<<<< HEAD
+        pos_loss = -torch.log(t_scores+EPS).sum()
+        neg_loss = -torch.log(1-f_scores+EPS).sum()
+        # print("pos loss:", (1-self.neg_weight) * pos_loss*100)
+        # print("neg loss:", self.neg_weight * neg_loss)
+        return (1-self.neg_weight) * pos_loss *100 + self.neg_weight * neg_loss
+=======
         pos_loss = -torch.log(t_scores+EPS).mean()
         neg_loss = -torch.log(1-f_scores+EPS).mean()
         print("pos loss:", (1-self.neg_weight) * pos_loss )
         print("neg loss:", self.neg_weight * neg_loss)
         return (1-self.neg_weight) * pos_loss + self.neg_weight * neg_loss
+>>>>>>> 512cf2c4f245a53776bbb43ccf21d68c04e80052
 
 
     '''

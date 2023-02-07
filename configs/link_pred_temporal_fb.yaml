@@ -3,7 +3,11 @@ task: "temporal_link_prediction"
 seed: 321
 
 MODEL:
+<<<<<<< HEAD
+  model: "EULER"
+=======
   model: "EGCNH"
+>>>>>>> 512cf2c4f245a53776bbb43ccf21d68c04e80052
 
 DATASET:
   dataset: "fb"

@@ -54,10 +54,18 @@ class egcn_trainer(base_trainer):
             
             zs = self.model(adj_orig_dense_list[train_start:train_end], x_in[train_start:train_end])
             
+            # neg_edges = []
+            # for i in range(train_start+1, train_end):
+            #     neg_edges.append(negative_sampling(edge_idx_list[i], zs[i].size(0)).T)
             neg_edges = []
             for i in range(train_start+1, train_end):
-                neg_edges.append(negative_sampling(edge_idx_list[i], zs[i].size(0)).T)
-
+                neg_sample = negative_sampling(edge_idx_list[i], zs[i].size(0), edge_idx_list[i].shape[1]*100).T
+                neg_edges.append(neg_sample)
+            
+            neg_edges_l = []
+            for i in range(train_end, seq_end):
+                neg_sample = negative_sampling(edge_idx_list[i], zs[0].size(0), edge_idx_list[i].shape[1]*100).T
+                neg_edges_l.append(neg_sample)
             loss = self.model.loss_fn(edge_idx_list[train_start+1:train_end], neg_edges, zs[:-1])
 
             loss.backward()
@@ -70,7 +78,7 @@ class egcn_trainer(base_trainer):
                 x_in_testing = torch.stack([x_in[train_end-1] for i in range(test_len)])
                 dense_list_testing = [adj_orig_dense_list[train_end-1] for i in range(test_len)]
                 self.inference(x_in_testing, dense_list_testing, adj_orig_dense_list[train_end:seq_end], 
-                             pos_edges_l[train_end:seq_end], neg_edges_l[train_end:seq_end])
+                             pos_edges_l[train_end:seq_end], neg_edges_l)
                 pbar.set_description('Epoch {}/{}, Loss {:.3f}, Test AUC {:.3f}, Test AP {:.3f}, Val AUC {:.3f}, Val AP {:.3f}, Time {:.1f}s'.format(epoch, self.max_epochs, loss.item(),self.cal_metric.test_metrics["AUC"], 
                     self.cal_metric.test_metrics["AP"], self.cal_metric.val_metrics["AUC"], self.cal_metric.val_metrics["AP"], time.time() - start_time))
 
