@@ -7,6 +7,10 @@ This repository contains source code for the Robust Graph Learning project.
 * Test reddit/wiki results, to resolve OOM issues;
 * Tables reporting optimal hyperparameters for each datasets.
 
+## Task:
+- Dynamic Link Prediction on Temporal Graph: given several time-steps of a graph dataset, our models could predict the edges change in the future time-steps. 
+- Link Prediction on static graph data: given one graph, predict link changes on next graph. 
+
 ## Data:
 
 - DBLP
@@ -16,14 +20,14 @@ This repository contains source code for the Robust Graph Learning project.
 - [Reddit](http://snap.stanford.edu/jodie/reddit.csv)
 
 ## Attack:
-We use [DeepRobust](https://github.com/DSE-MSU/DeepRobust) to perform most attacks.  
+We use [DeepRobust](https://github.com/DSE-MSU/DeepRobust) to perform most of the attacks.  
 [DeepRobust Documentation](https://deeprobust.readthedocs.io/en/latest/)  
 Attack methods integrated in our framework:  
 - [Random Attack](https://deeprobust.readthedocs.io/en/latest/source/deeprobust.graph.global_attack.html#module-deeprobust.graph.global_attack.random_attack)
 - [Meta Attack](https://deeprobust.readthedocs.io/en/latest/source/deeprobust.graph.global_attack.html#module-deeprobust.graph.global_attack.mettack)
 - [Dice Attack](https://deeprobust.readthedocs.io/en/latest/source/deeprobust.graph.global_attack.html#module-deeprobust.graph.global_attack.dice)
 - [Node Attack](https://deeprobust.readthedocs.io/en/latest/graph/node_embedding.html?highlight=node%20attack#node-embedding-attack)
-- Temporal Attack (our own method)
+- Temporal Attack (our own method): this method could only apply on temporal dataset. 
 
 ## Baseline:
 
