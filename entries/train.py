@@ -78,6 +78,7 @@ def main():
     update_config_from_yaml(cfg, args)
     update_cfg_from_args(cfg, args)
     test_auc, test_ap = [], []
+    test_recall, test_ndcg = [], []
 
     save_dir = './trained_model/{}_{}_{}_{}_lr_{}/'.format(
         cfg.DATASET.dataset, cfg.MODEL.model, cfg.ATTACK.method, cfg.ATTACK.ptb_rate, cfg.TRAIN.initial_lr)
@@ -102,15 +103,18 @@ def main():
 
         data, model, trainer_func, optimizer, criterion, device = setup(cfg, args)
         trainer = trainer_func(cfg, model, criterion, data, optimizer, device)
-        test_auc_, test_ap_ = trainer.train()
+        test_auc_, test_ap_, test_recall_, test_ndcg_ = trainer.train()
         
         logging.info("---------------------end training---------------------")
         test_auc.append(test_auc_)
         test_ap.append(test_ap_)
+        test_recall.append(test_recall_)
+        test_ndcg.append(test_ndcg_)
 
         args.seed += 5
         
     logging.info("{} runs, Test AUC {:.3f} +- {:.3f}, Test AP {:.3f} +- {:.3f}".format(args.runs, np.mean(test_auc), np.std(test_auc), np.mean(test_ap), np.std(test_ap)))
+    logging.info("{} runs, Test Recall {:.3f} +- {:.3f}, Test NDCG {:.3f} +- {:.3f}".format(args.runs, np.mean(test_recall), np.std(test_recall), np.mean(test_ndcg), np.std(test_ndcg)))
 
 if __name__ == '__main__':
     main()

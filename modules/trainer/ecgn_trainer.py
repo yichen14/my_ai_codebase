@@ -71,13 +71,13 @@ class egcn_trainer(base_trainer):
                 dense_list_testing = [adj_orig_dense_list[train_end-1] for i in range(test_len)]
                 self.inference(x_in_testing, dense_list_testing, adj_orig_dense_list[train_end:seq_end], 
                              pos_edges_l[train_end:seq_end], neg_edges_l[train_end:seq_end])
-                pbar.set_description('Epoch {}/{}, Loss {:.3f}, Test AUC {:.3f}, Test AP {:.3f}, Val AUC {:.3f}, Val AP {:.3f}, Time {:.1f}s'.format(epoch, self.max_epochs, loss.item(),self.cal_metric.test_metrics["AUC"], 
-                    self.cal_metric.test_metrics["AP"], self.cal_metric.val_metrics["AUC"], self.cal_metric.val_metrics["AP"], time.time() - start_time))
+                pbar.set_description('Epoch {}/{}, Loss {:.3f}, Test AUC {:.3f}, Test AP {:.3f}, Val AUC {:.3f}, Val AP {:.3f}; Test Recall {:.3f}, Test NDCG {:.3f}, Val Recall {:.3f}, Val NDCG {:.3f}  Time {:.1f}s'.format(epoch, self.max_epochs, loss.item(),self.cal_metric.test_metrics["AUC"], 
+                    self.cal_metric.test_metrics["AP"], self.cal_metric.val_metrics["AUC"], self.cal_metric.val_metrics["AP"], self.cal_metric.test_metrics["recall"], self.cal_metric.test_metrics['ndcg'], self.cal_metric.val_metrics['recall'], self.cal_metric.val_metrics['ndcg'], time.time() - start_time))
 
-        logging.info("Best performance: Test AUC {:.3f}, Test AP {:.3f}, Val AUC {:.3f}, Val AP {:.3f}".format(
-                self.cal_metric.best_test_metrics["AUC"], self.cal_metric.best_test_metrics["AP"], self.cal_metric.best_val_metrics["AUC"], self.cal_metric.best_val_metrics["AP"]))
+        logging.info("Best performance: Test AUC {:.3f}, Test AP {:.3f}, Test Recall {:.3f}, Test NDCG {:.3f}".format(
+                self.cal_metric.best_test_metrics["AUC"], self.cal_metric.best_test_metrics["AP"], self.cal_metric.best_test_metrics["recall"], self.cal_metric.best_test_metrics["ndcg"]))
 
-        return self.cal_metric.best_test_metrics["AUC"], self.cal_metric.best_test_metrics["AP"]
+        return self.cal_metric.best_test_metrics["AUC"], self.cal_metric.best_test_metrics["AP"], self.cal_metric.best_test_metrics["recall"], self.cal_metric.best_test_metrics["ndcg"]
 
     @torch.no_grad()
     def inference(self, x_in, adj_orig_dense_list_train, adj_orig_dense_list, pos_edges_l, neg_edges_l, regressive = False):
