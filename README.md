@@ -7,55 +7,60 @@ This repository contains source code for the Robust Graph Learning project.
 * Test reddit/wiki results, to resolve OOM issues;
 * Tables reporting optimal hyperparameters for each datasets.
 
+## Task:
+- Dynamic Link Prediction on Temporal Graph: given several time-steps of a graph dataset, our models could predict the edges change in the future time-steps. 
+- Link Prediction on static graph data: given one graph, predict link changes on next graph. 
+
 ## Data:
 
 - DBLP
 - Enron10
 - Facebook
-- Wikipedia: http://snap.stanford.edu/jodie/wikipedia.csv
-- Reddit: http://snap.stanford.edu/jodie/reddit.csv
+- [Wikipedia](http://snap.stanford.edu/jodie/wikipedia.csv)
+- [Reddit](http://snap.stanford.edu/jodie/reddit.csv)
 
 ## Attack:
-We use [DeepRobust](https://github.com/DSE-MSU/DeepRobust) to perform most attacks.  
+We use [DeepRobust](https://github.com/DSE-MSU/DeepRobust) to perform most of the attacks.  
 [DeepRobust Documentation](https://deeprobust.readthedocs.io/en/latest/)  
 Attack methods integrated in our framework:  
 - [Random Attack](https://deeprobust.readthedocs.io/en/latest/source/deeprobust.graph.global_attack.html#module-deeprobust.graph.global_attack.random_attack)
 - [Meta Attack](https://deeprobust.readthedocs.io/en/latest/source/deeprobust.graph.global_attack.html#module-deeprobust.graph.global_attack.mettack)
 - [Dice Attack](https://deeprobust.readthedocs.io/en/latest/source/deeprobust.graph.global_attack.html#module-deeprobust.graph.global_attack.dice)
 - [Node Attack](https://deeprobust.readthedocs.io/en/latest/graph/node_embedding.html?highlight=node%20attack#node-embedding-attack)
-- Temporal Attack (our own method)
+- Temporal Attack (our own method): this method could only apply on temporal dataset. 
 
 ## Baseline:
 
 #### Static GNNs:
 
-- GAE: https://github.com/DaehanKim/vgae_pytorch
-- VGAE: https://github.com/DaehanKim/vgae_pytorch
+- [GAE](https://github.com/DaehanKim/vgae_pytorch)
+- [VGAE](https://github.com/DaehanKim/vgae_pytorch)
 
 #### Discrete Dynamics GNNs:
 
-- EvolveGCN (EGCN-H, EGCN-O): https://github.com/IBM/EvolveGCN
-- Euler: https://github.com/iHeartGraph/Euler
-- DySAT: https://github.com/FeiGSSS/DySAT_pytorch
+- [EvolveGCN (EGCN-H, EGCN-O)](https://github.com/IBM/EvolveGCN)
+- [Euler](https://github.com/iHeartGraph/Euler)
+- [DySAT](https://github.com/FeiGSSS/DySAT_pytorch)
 
 #### Continuous Dynamics GNN:
 
-- TGAT: https://github.com/StatsDLMathsRecomSys/Inductive-representation-learning-on-temporal-graphs
+- [TGAT](https://github.com/StatsDLMathsRecomSys/Inductive-representation-learning-on-temporal-graphs)
 
 #### Static Defense GNN:
 
-- Pro-GNN: https://github.com/ChandlerBang/Pro-GNN
+- [Pro-GNN](https://github.com/ChandlerBang/Pro-GNN)
 
-## Hyperparameter Setting:
+## Config Hyperparameter Setting:
 
-The following table shows the hyperparameter setting for each baseline model. 
+The following table shows the hyperparameter setting for each baseline models in our default configs. 
+**Note:** we perform early stop in our infrastructure pipeline.
 
 |        |                     max_epochs                     |               learning rate              |                                  Others                                  |
 |:------:|:--------------------------------------------------:|:----------------------------------------:|:------------------------------------------------------------------------:|
 |   GAE  |                        1500                        |  enron10: 0.0001; dblp: 0.0001; fb: 0.01 |                                                                          |
-|  VGAE  |                        1500                        |  enron10: 0.0001; dblp: 0.0001; fb: 0.01 |                                                                          |
-| EGCN-H | For enron10, dblp, fb: 1500; For wiki, reddit: 800 |  enron10: 0.0001; dblp: 0.005; fb: 0.005 |                                                                          |
-| EGCN-O | For enron10, dblp, fb: 1500; For wiki, reddit: 800 |  enron10: 0.001; dblp: 0.001; fb: 0.001  |                                                                          |
+|  VGAE  |                        1500                        |  enron10: 0.0001; dblp: 0.0001; fb: 0.01 |     same config file as GAE but change 'encoder' to 'VGCN'                                                                     |
+| EGCN-H |                        1500; For wiki, reddit: 800 |  enron10: 0.0001; dblp: 0.005; fb: 0.005 |                                                                          |
+| EGCN-O |                        1500; For wiki, reddit: 800 |  enron10: 0.001; dblp: 0.001; fb: 0.001  |                                                                          |
 |  EULER |                        1500                        |    enron10: 0.02; dblp: 0.02; fb: 0.02   |                                                                          |
 |  DySAT |  For enron10, dblp, fb: 100; For wiki, reddit: 50  | enron10: 0.001; dblp: 0.0005; fb: 0.0005 | For enron10, dblp, fb: walk_len=20; For wiki, reddit: walk_len=5, runs=5 |
 |  TGAT  |                         50                         | enron10: 0.0001; dblp: 0.0001; fb: 0.001 |                                                                          |
