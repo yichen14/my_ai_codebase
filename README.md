@@ -8,6 +8,7 @@ This repository contains source code for the Robust Graph Learning project.
 * Tables reporting optimal hyperparameters for each datasets.
 
 ## Task:
+Our code base support:
 - Dynamic Link Prediction on Temporal Graph: given several time-steps of a graph dataset, our models could predict the edges change in the future time-steps. 
 - Link Prediction on static graph data: given one graph, predict link changes on next graph. 
 

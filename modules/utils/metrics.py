@@ -241,4 +241,8 @@ def recall_at_k_batch(hits, k):
     hits: array, element is binary (0 / 1), 2-dim
     """
     res = (hits[:, :k].sum(axis=1) / (hits.sum(axis=1) + 0.1))
+<<<<<<< HEAD
     return res
+=======
+    return res
+>>>>>>> c490cc99b616f77a90f0be9938e7ca70a4f19fbc
