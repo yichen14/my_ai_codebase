@@ -78,8 +78,15 @@ class Evaluation():
             emb_src = emb[t_src.numpy()] # emb_src: k=len(t_src) * d
             emb_node = emb # emb_node: n * d
             rank_scores = emb_src @ emb_node.T # rank_scores: k * n
-            rank_scores.fill_diagonal_(0) # Change diagonal value to 0
-
+            # rank_scores.fill_diagonal_(0) # Change diagonal value to 0
+            rank_scores[range(len(t_src)), t_src] = 0
+            
+            ## TODO: filter out other target nodes:
+            
+            if filter_flag:
+                # fetch $other_nodes;
+                # rank_scores[range(len(t_src)), $other_nodes] = 0
+            
             # # one hot preprocessing
             # t_one_hot = F.one_hot(t_dst.long(), num_classes=rank_scores.size(1)).to(torch.float32) # k * n
             # t_rank_scores = rank_scores * t_one_hot
