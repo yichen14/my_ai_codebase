@@ -35,3 +35,8 @@ TASK_SPECIFIC:
 LOGGING:
   log_file: "log.txt"
   model_file: "model.pt"
+
+METRIC:
+  filter: True
+  K: 20
+  

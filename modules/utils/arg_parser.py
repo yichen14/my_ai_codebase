@@ -18,6 +18,7 @@ def parse_args():
 
     parser.add_argument('--gpu', type=int, default=1,
                         help='default is to use gpu')
+
     parser.add_argument('--device', type=int, default=0,
                         help='device id')
 
@@ -60,6 +61,11 @@ def parse_args():
                         help='Iter interval of printing loss.')
     parser.add_argument('--evaluate_epoch', type=int, default=None,
                         help='Epoch interval of evaluation.')
+
+    parser.add_argument('--filter', type=bool, default=False,
+                        help='filter for RECALL@K and NDCG@K')
+    parser.add_argument('--K', type=int, default=20,
+                        help='K value for RECALL@K and NDCG@K')
 
     parser.add_argument('--runs', type=int, default=10,
                         help='Independent runs with different seeds.')

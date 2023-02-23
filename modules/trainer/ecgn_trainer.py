@@ -15,7 +15,7 @@ class egcn_trainer(base_trainer):
         self.max_epochs = cfg.TRAIN.max_epochs
         self.log_epoch = cfg.TRAIN.log_epoch
         self.temporal_data = dataset_module
-        self.cal_metric = Evaluation(self.cfg.DATASET.TEMPORAL.val_len, self.cfg.DATASET.TEMPORAL.test_len)
+        self.cal_metric = Evaluation(self.cfg.DATASET.TEMPORAL.val_len, self.cfg.DATASET.TEMPORAL.test_len, self.cfg.METRIC.filter, self.cfg.METRIC.K)
 
     def train(self):
         test_len = self.cfg.DATASET.TEMPORAL.test_len

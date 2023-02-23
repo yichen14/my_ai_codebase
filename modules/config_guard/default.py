@@ -171,6 +171,13 @@ _C.ATTACK.attack_data_path = "/"
 _C.ATTACK.new_attack = True
 
 #######################
+# METRIC Settings
+#######################
+_C.METRIC = CN()
+_C.METRIC.filter = False
+_C.METRIC.K = 20
+
+#######################
 # Task-specific Settings
 #######################
 _C.TASK_SPECIFIC = CN()
@@ -302,7 +309,13 @@ def update_cfg_from_args(cfg, args):
     
     if args.device is not None:
         cfg.device = args.device
+    
+    if args.filter is not None:
+        cfg.METRIC.filter = args.filter
 
+    if args.K is not None:
+        cfg.METRIC.K = args.K
+        
     cfg.freeze()
     
 if __name__ == "__main__":

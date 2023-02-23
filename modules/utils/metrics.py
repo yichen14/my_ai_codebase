@@ -7,14 +7,14 @@ from sklearn.metrics import average_precision_score
 from scipy.special import expit
 import torch.nn.functional as F
 
-K=20
-
 """Evaluation for static and discrete models: AUC, AP, Recall@K, NDCG@K"""
 class Evaluation():
-    def __init__(self, val_len, test_len) -> None:
+    def __init__(self, val_len, test_len, filter_flag, K) -> None:
         super().__init__()
         self.val_len = val_len
         self.test_len = test_len
+        self.filter_flag = filter_flag
+        self.K = K
         self.val_metrics = {"AUC": 0.0, "AP": 0.0, "recall": 0.0, "ndcg": 0.0}
         self.test_metrics = {"AUC": 0.0, "AP": 0.0, "recall": 0.0, "ndcg": 0.0}
         self.best_val_metrics = {"AUC": 0.0, "AP": 0.0, "recall": 0.0, "ndcg": 0.0}
@@ -79,20 +79,31 @@ class Evaluation():
             emb_node = emb # emb_node: n * d
             rank_scores = emb_src @ emb_node.T # rank_scores: k * n
             # rank_scores.fill_diagonal_(0) # Change diagonal value to 0
-            rank_scores[range(len(t_src)), t_src] = 0
-            
-            ## TODO: filter out other target nodes:
-            
-            if filter_flag:
-                # fetch $other_nodes;
-                # rank_scores[range(len(t_src)), $other_nodes] = 0
-            
-            # # one hot preprocessing
-            # t_one_hot = F.one_hot(t_dst.long(), num_classes=rank_scores.size(1)).to(torch.float32) # k * n
-            # t_rank_scores = rank_scores * t_one_hot
-            # f_one_hot = F.one_hot(f_dst.long(), num_classes=rank_scores.size(1)).to(torch.float32)
-            # f_rank_scores = rank_scores * f_one_hot
-            # rank_scores = t_rank_scores + f_rank_scores
+
+            rank_scores[range(len(t_src)), list(t_src)] = 0
+
+            if self.filter_flag:
+                node_dict = {}
+                idx_dict = {}
+                
+                for idx, node in enumerate(t_src):
+                    if int(node) not in node_dict:
+                        node_dict[int(node)] = []
+                    node_dict[int(node)].append(int(t_dst[idx]))
+                    if int(node) not in idx_dict:
+                        idx_dict[int(node)] = []
+                    idx_dict[int(node)].append(idx)
+
+                t_one_hot = F.one_hot(t_dst.long(), num_classes=rank_scores.size(1)).to(torch.float32)
+                mask = torch.ones_like(rank_scores)
+                for node in node_dict:
+                    idx_list = idx_dict[node]
+                    mask_ = torch.ones(mask.size(1))
+                    mask_[node_dict[node]] = 0.0
+                    mask[idx_list] = mask_
+                
+                mask = torch.logical_or(mask, t_one_hot)
+                rank_scores = rank_scores * mask
 
             _, rank_indices = torch.sort(rank_scores, descending=True)
             rank_indices = rank_indices.cpu()
@@ -104,8 +115,8 @@ class Evaluation():
                 binary_hit.append(gt[j][rank_indices[j]])
             binary_hit = np.array(binary_hit, dtype=np.float32)
 
-            recall = recall_at_k_batch(binary_hit, K)
-            ndcg = ndcg_at_k_batch(binary_hit, K)
+            recall = recall_at_k_batch(binary_hit, self.K)
+            ndcg = ndcg_at_k_batch(binary_hit, self.K)
             total = sum([1 if (sum(gt_) > 0) else 0 for gt_ in gt])
             recall = sum(recall)/total
             ndcg = sum(ndcg)/total

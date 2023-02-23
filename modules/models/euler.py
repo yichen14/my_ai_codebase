@@ -186,8 +186,8 @@ class EulerGCN(nn.Module):
         EPS = 1e-6
         pos_loss = -torch.log(t_scores+EPS).mean()
         neg_loss = -torch.log(1-f_scores+EPS).mean()
-        print("pos loss:", (1-self.neg_weight) * pos_loss )
-        print("neg loss:", self.neg_weight * neg_loss)
+        # print("pos loss:", (1-self.neg_weight) * pos_loss )
+        # print("neg loss:", self.neg_weight * neg_loss)
         return (1-self.neg_weight) * pos_loss + self.neg_weight * neg_loss
 
 
