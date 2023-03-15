@@ -106,8 +106,6 @@ class Evaluation():
             rank_scores[range(len(t_src)), list(t_src)] = 0
 
             if self.filter_flag:
-
-
                 t_one_hot = F.one_hot(t_dst.long(), num_classes=rank_scores.size(1)).to(torch.float32)
                 mask = torch.ones_like(rank_scores)
                 for node in node_dict:
